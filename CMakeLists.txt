@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 4.3.2)
 
-
-project(Idk)
+project(Gen3MapInterpreter)
 
 message(${PROJECT_NAME})
 
@@ -15,4 +14,5 @@ add_executable(${PROJECT_NAME}
     src/main.cpp
     src/FileHandler.cpp
     src/MapProcessor.cpp
+    src/Metatile.cpp
 )

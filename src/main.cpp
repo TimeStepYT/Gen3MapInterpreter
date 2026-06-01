@@ -9,6 +9,8 @@
 std::filesystem::path filePath;
 int width = 8;
 FileHandler fileHandler;
+bool simple = false;
+bool showMetatileInfo = false;
 
 void readArgument(char** argv, int argc, int i, char const* name, int& var) {
     if (strcmp(argv[i], name) != 0)
@@ -33,12 +35,15 @@ void parseArguments(int argc, char** argv) {
         auto* arg = argv[i];
 
         readArgument(argv, argc, i, "-width", width);
-        readArgument(argv, argc, i, "-simple", MapProcessor::m_simple);
+        readArgument(argv, argc, i, "-simple", simple);
+        readArgument(argv, argc, i, "-metatiles", showMetatileInfo);
     }
 }
 
 void handleFileContent() {
     MapProcessor mapProcessor;
+    mapProcessor.showMetatileInfo(showMetatileInfo);
+    mapProcessor.simpleMode(simple);
 
     auto bytes = std::make_unique<std::vector<uint16_t>>();
 
@@ -64,9 +69,10 @@ void handleFileContent() {
 
 int main(int argc, char** argv) {
     if (argc < 2) {
-        std::puts("Syntax: idk.exe <filepath> [OPTIONS]");
-        std::puts("  -simple: Only shows the collision data");
-        std::puts("  -width <value>: Set the display width");
+        std::puts("Syntax: Gen3MapInterpreter.exe <filepath> [OPTIONS]");
+        std::puts("    -simple         Only shows the collision data");
+        std::puts("    -metatiles      Only show metatile info");
+        std::puts("    -width <value>  Set the display width");
         return 0;
     }
 
