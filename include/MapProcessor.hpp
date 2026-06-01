@@ -4,12 +4,12 @@
 #include <memory>
 #include <string>
 
-#include <Metatile.hpp>
+#include <MapMetatile.hpp>
 
 class MapProcessor {
     using BytesVector = std::unique_ptr<std::vector<uint16_t>>;
     struct Tile {
-        Metatile metatile {0};
+        MapMetatile metatile {0};
         uint8_t collision = 0;
         uint8_t elevation = 0;
         uint8_t advanceMapFormat = 0;
@@ -22,7 +22,7 @@ class MapProcessor {
     
     template <typename T>
     void printField(std::string const& title, T Tile::* field);
-    void printField(std::string const& title, Metatile Tile::* field);
+    void printField(std::string const& title, MapMetatile Tile::* field);
 public:
 
     void showMetatileInfo(bool show);
