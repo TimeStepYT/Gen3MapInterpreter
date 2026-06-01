@@ -1,7 +1,7 @@
-#include <iostream>
-#include <string>
 #include <vector>
-#include <string>
+#include <cstring>
+
+#include <png.h>
 
 #include <FileHandler.hpp>
 #include <MapProcessor.hpp>
