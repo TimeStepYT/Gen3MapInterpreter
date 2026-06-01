@@ -15,6 +15,7 @@ add_executable(${PROJECT_NAME}
     src/FileHandler.cpp
     src/MapProcessor.cpp
     src/MapMetatile.cpp
+    src/PngHandler.cpp
 )
 
 include(cmake/CPM.cmake)
