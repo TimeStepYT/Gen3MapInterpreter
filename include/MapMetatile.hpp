@@ -1,6 +1,6 @@
-#include <stdint.h>
-
 #pragma once
+
+#include <stdint.h>
 
 class MapMetatile {
     bool m_secondTileset = false;
