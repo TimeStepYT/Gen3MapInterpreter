@@ -14,5 +14,5 @@ add_executable(${PROJECT_NAME}
     src/main.cpp
     src/FileHandler.cpp
     src/MapProcessor.cpp
-    src/Metatile.cpp
+    src/MapMetatile.cpp
 )
