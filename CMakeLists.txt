@@ -16,3 +16,10 @@ add_executable(${PROJECT_NAME}
     src/MapProcessor.cpp
     src/MapMetatile.cpp
 )
+
+include(cmake/CPM.cmake)
+
+CPMAddPackage(gh:madler/zlib@1.3.2)
+CPMAddPackage(gh:pnggroup/libpng@1.6.58)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE zlib png_shared)

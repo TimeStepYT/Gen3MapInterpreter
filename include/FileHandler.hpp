@@ -1,7 +1,7 @@
 #pragma once
 
 #include <filesystem>
-#include <string>
+#include <vector>
 
 class FileHandler {
     std::vector<uint8_t> m_fileContent{};
