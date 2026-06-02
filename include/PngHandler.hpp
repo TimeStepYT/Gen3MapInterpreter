@@ -4,12 +4,22 @@
 #include <png.h>
 
 class PngHandler {
-    static inline png_infop s_infoPtr = nullptr;
-    static inline png_bytepp s_rows = nullptr;
-
     std::filesystem::path m_path;
+    png_struct* m_png = nullptr;
+    png_infop m_info = nullptr;
+    std::vector<std::vector<png_byte>> m_rows;
+    
+    uint32_t m_width = 0;
+    uint32_t m_height = 0;
+    int m_bitDepth = 0;
+    int m_colorType = 0;
+
+    void readDetails();
+    void readPixels();
+    void deepCopyRows(png_byte** rows, size_t rowSize);
 public:
     PngHandler(std::filesystem::path const& path);
+
     void read();
     void write();
 };
