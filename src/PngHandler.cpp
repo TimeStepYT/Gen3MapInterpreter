@@ -83,22 +83,25 @@ void PngHandler::deepCopyRows(png_byte** rows, size_t rowSize) {
 
     this->m_rows.reserve(this->m_height);
 
-    for (int y = 0; y < this->m_height; ++y) {
-        std::vector<Pixel> newVec;
-        newVec.reserve(this->m_width);
+    std::vector<Pixel> buffVec;
+    buffVec.reserve(this->m_width);
 
+    for (int y = 0; y < this->m_height; ++y) {
+        buffVec.clear();
         for (int x = 0; x < this->m_width; ++x) {
-            Pixel newPixel{
+            uint8_t alpha = 255;
+
+            if (bytesPerPixel == 4)
+                alpha = rows[y][x*bytesPerPixel + 3];
+
+            buffVec.emplace_back(
                 rows[y][x*bytesPerPixel],
                 rows[y][x*bytesPerPixel + 1],
-                rows[y][x*bytesPerPixel + 2]
-            };
-            
-            if (bytesPerPixel == 4)
-                newPixel.a = rows[y][x*bytesPerPixel + 3];
-            newVec.emplace_back(newPixel);
+                rows[y][x*bytesPerPixel + 2],
+                alpha
+            );
         }
-        this->m_rows.emplace_back(newVec);
+        this->m_rows.emplace_back(buffVec);
     }
 }
 
