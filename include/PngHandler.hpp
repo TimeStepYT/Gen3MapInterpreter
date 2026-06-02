@@ -47,8 +47,9 @@ class PngHandler {
 
     void readDetails();
     void readPixels();
-    void writePixels();
     void deepCopyRows(png_byte** rows, size_t rowSize);
+    void writePixels();
+    void writePipeline();
 public:
     PngHandler(std::filesystem::path const& path);
 
@@ -58,4 +59,5 @@ public:
     uint32_t getHeight() const;
     void read();
     void write(std::vector<std::vector<Pixel>> const& pixelVector);
+    void write(std::vector<std::vector<Pixel>>&& pixelVector);
 };
