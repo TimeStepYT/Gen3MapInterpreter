@@ -7,6 +7,22 @@ PngHandler::PngHandler(std::filesystem::path const& path) {
     this->m_path = path;
 }
 
+uint32_t PngHandler::getWidth() const {
+    return this->m_width;
+}
+
+uint32_t PngHandler::getHeight() const {
+    return this->m_height;
+}
+
+Pixel const& PngHandler::getPixel(unsigned int x, unsigned int y) const {
+    return this->m_rows[y][x];
+}
+
+std::vector<std::vector<Pixel>> const& PngHandler::getAllPixels() const {
+    return this->m_rows;
+}
+
 void PngHandler::readDetails() {
     png_get_IHDR(
         this->m_png,
@@ -110,6 +126,7 @@ void PngHandler::read() {
     fread(sig, 1, 8, file);
     if (!png_check_sig(sig, 8)) {
         std::cerr << "Bad PNG signature" << std::endl;
+        fclose(file);
         return;
     }
 
@@ -118,6 +135,7 @@ void PngHandler::read() {
     auto png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
     if (!png) {
         std::cerr << "Couldn't create PNG struct" << std::endl;
+        fclose(file);
         return;
     }
   
@@ -127,6 +145,7 @@ void PngHandler::read() {
     if (!this->m_info) {
         png_destroy_read_struct(&png, nullptr, nullptr);
         std::cerr << "Couldn't create info struct" << std::endl;
+        fclose(file);
         return;
     }
     
@@ -134,6 +153,7 @@ void PngHandler::read() {
     if (setjmp(png_jmpbuf(png))) {
         png_destroy_read_struct(&png, &this->m_info, nullptr);
         std::cerr << "An Error occurred" << std::endl;
+        fclose(file);
         return;
     }
 
@@ -147,13 +167,6 @@ void PngHandler::read() {
 
     png_destroy_read_struct(&png, &this->m_info, nullptr);
 
-
-    auto px = this->m_rows[0];
-
-    std::cout << 
-        "First Pixel: " << px[0] << std::endl;
-
-    
     err = fclose(file);
     if (err != 0) {
         std::cerr << "Couldn't close file " << path << std::endl;
@@ -161,9 +174,44 @@ void PngHandler::read() {
     }
 }
 
-void PngHandler::write() {
+void PngHandler::writePixels() {
+    auto const width = this->m_width;
+    auto const height = this->m_height;
+
+    auto byteRows = new png_byte*[height];
+
+    for (int i = 0; i < height; ++i) {
+        byteRows[i] = new png_byte[width * 4];
+    }
+
+    for (uint32_t y = 0; y < height; ++y) {
+        for (uint32_t x = 0; x < width; ++x) {
+            auto const& pixel = this->m_rows[y][x];
+
+            byteRows[y][x * 4 + 0] = pixel.r;
+            byteRows[y][x * 4 + 1] = pixel.g;
+            byteRows[y][x * 4 + 2] = pixel.b;
+            byteRows[y][x * 4 + 3] = pixel.a;
+        }
+    }
+
+    png_write_image(this->m_png, byteRows);
+
+    for (int i = 0; i < height; ++i) {
+        delete[] byteRows[i];
+    }
+
+    delete[] byteRows;
+}
+
+void PngHandler::write(std::vector<std::vector<Pixel>> const& pixelVector) {
+    if (pixelVector.size() == 0) {
+        std::cerr << "Pixel vector is empty" << std::endl;
+        return;
+    }
+
     auto const& path = this->m_path;
-    
+
     FILE* file;
 
     errno_t err = fopen_s(&file, path.string().c_str(), "wb");
@@ -178,10 +226,62 @@ void PngHandler::write() {
         return;
     }
 
-    //TODO
+    // Gonna add comments here so i know what i'm doing in the future
+    // This shit creates the png structs and handles errors
+    auto png = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+    if (!png) {
+        std::cerr << "Couldn't create PNG struct" << std::endl;
+        fclose(file);
+        return;
+    }
+    this->m_png = png;
+    
+    auto info = png_create_info_struct(png);
+    if (!info) {
+        png_destroy_write_struct(&png, &info);
+        std::cerr << "Couldn't create info struct" << std::endl;
+        fclose(file);
+        return;
+    }
+    this->m_info = info;
+    
+    // Idk this is in the tutorial, don't ask me what this does. It just checks for errors
+    if (setjmp(png_jmpbuf(png))) {
+        png_destroy_write_struct(&png, &info);
+        std::cerr << "An Error occurred" << std::endl;
+        fclose(file);
+        return;
+    }
 
+    // Finally getting to the actual writing part
+    png_init_io(png, file);
+    
+    this->m_rows = std::move(pixelVector);
+
+    auto const width = this->m_rows[0].size();
+    auto const height = this->m_rows.size();
+
+    this->m_width = width;
+    this->m_height = height;
+
+    png_set_IHDR(
+        png, info, 
+        width, height,
+        8, 
+        PNG_COLOR_TYPE_RGBA, 
+        PNG_INTERLACE_NONE, 
+        PNG_COMPRESSION_TYPE_DEFAULT, 
+        PNG_FILTER_TYPE_DEFAULT
+    );
+    
+    png_write_info(png, info);
+    
+    this->writePixels();
+
+    png_write_end(png, nullptr);
+
+    png_destroy_write_struct(&png, &info);
     err = fclose(file);
-
     if (err != 0) {
         std::cerr << "Couldn't close file " << path << std::endl;
         return;
