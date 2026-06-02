@@ -4,6 +4,7 @@
 #include <FileHandler.hpp>
 #include <MapProcessor.hpp>
 #include <PngHandler.hpp>
+#include <Palette.hpp>
 
 std::filesystem::path filePath;
 int width = 8;
