@@ -72,6 +72,7 @@ int main(int argc, char** argv) {
         std::puts("    -simple         Only shows the collision data");
         std::puts("    -metatiles      Only show metatile info");
         std::puts("    -width <value>  Set the display width");
+
         return 0;
     }
 
