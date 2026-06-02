@@ -87,17 +87,17 @@ void PngHandler::deepCopyRows(png_byte** rows, size_t rowSize) {
     buffVec.reserve(this->m_width);
 
     for (int y = 0; y < this->m_height; ++y) {
-        buffVec.clear();
         for (int x = 0; x < this->m_width; ++x) {
+            auto startX = x*bytesPerPixel;
+            
             uint8_t alpha = 255;
-
             if (bytesPerPixel == 4)
-                alpha = rows[y][x*bytesPerPixel + 3];
+                alpha = rows[y][startX + 3];
 
             buffVec.emplace_back(
-                rows[y][x*bytesPerPixel],
-                rows[y][x*bytesPerPixel + 1],
-                rows[y][x*bytesPerPixel + 2],
+                rows[y][startX + 0],
+                rows[y][startX + 1],
+                rows[y][startX + 2],
                 alpha
             );
         }
