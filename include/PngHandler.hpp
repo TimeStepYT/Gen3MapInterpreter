@@ -3,6 +3,8 @@
 #include <filesystem>
 #include <png.h>
 
+#include <Palette.hpp>
+
 struct Pixel {
     uint8_t r = 0;
     uint8_t g = 0;
@@ -45,6 +47,9 @@ class PngHandler {
     int m_bitDepth = 0;
     int m_colorType = 0;
 
+    std::optional<Palette> m_newPalette;
+    bool m_hasRead = false;
+
     void readDetails();
     void readPixels();
     void deepCopyRows(png_byte** rows, size_t rowSize);
@@ -57,6 +62,9 @@ public:
     Pixel const& getPixel(unsigned int x, unsigned int y) const;
     uint32_t getWidth() const;
     uint32_t getHeight() const;
+
+    void setPalette(Palette const& palette);
+
     void read();
     void write(std::vector<std::vector<Pixel>> const& pixelVector);
     void write(std::vector<std::vector<Pixel>>&& pixelVector);

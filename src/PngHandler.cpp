@@ -23,6 +23,15 @@ std::vector<std::vector<Pixel>> const& PngHandler::getAllPixels() const {
     return this->m_rows;
 }
 
+// Sets the palette for reading indexed images. Run this BEFORE `PngHandler::read()`
+void PngHandler::setPalette(Palette const& palette) {
+    this->m_newPalette = palette;
+
+    if (this->m_hasRead) {
+        std::cout << "WARNING: Called PngHandler::setPalette() after reading" << std::endl;
+    }
+}
+
 void PngHandler::readDetails() {
     png_get_IHDR(
         this->m_png,
@@ -45,6 +54,11 @@ void PngHandler::readPixels() {
     bool changedInfo = false;
 
     if (this->m_colorType == PNG_COLOR_TYPE_PALETTE) {
+        if (this->m_newPalette.has_value()) {
+            auto pal = m_newPalette->getColors();
+            png_set_PLTE(png, info, pal.data(), pal.size());
+        }
+
         png_set_palette_to_rgb(png);
         changedInfo = true;
     }
@@ -162,6 +176,8 @@ void PngHandler::read() {
     
     this->readDetails();
     this->readPixels();
+
+    this->m_hasRead = true;
 
     png_destroy_read_struct(&png, &this->m_info, nullptr);
 

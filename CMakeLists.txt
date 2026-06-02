@@ -18,6 +18,7 @@ add_executable(${PROJECT_NAME}
     src/MapProcessor.cpp
     src/MapMetatile.cpp
     src/PngHandler.cpp
+    src/Palette.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
