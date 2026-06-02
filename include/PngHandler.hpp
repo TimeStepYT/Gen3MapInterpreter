@@ -10,12 +10,27 @@ struct Pixel {
     uint8_t a = 0xff;
 
     friend std::ostream& operator<<(std::ostream& out, Pixel pixel) {
-        return out << std::hex << '#' << 
-        static_cast<int>(pixel.r) << 
-        static_cast<int>(pixel.g) << 
-        static_cast<int>(pixel.b) << 
-        // static_cast<int>(pixel.a) <<
-        std::dec;
+        out << std::hex << '#';
+        
+        if (pixel.r < 0x10)
+            out << 0;
+        out << static_cast<int>(pixel.r);
+
+        if (pixel.g < 0x10)
+            out << 0;
+        out << static_cast<int>(pixel.g);
+
+        if (pixel.b < 0x10)
+            out << 0;
+        out << static_cast<int>(pixel.b);
+
+        // if (pixel.a < 0x10)
+        //     out << 0;
+        // out << static_cast<int>(pixel.a);
+
+        out << std::dec;
+
+        return out;
     }
 };
 
@@ -32,10 +47,15 @@ class PngHandler {
 
     void readDetails();
     void readPixels();
+    void writePixels();
     void deepCopyRows(png_byte** rows, size_t rowSize);
 public:
     PngHandler(std::filesystem::path const& path);
 
+    std::vector<std::vector<Pixel>> const& getAllPixels() const;
+    Pixel const& getPixel(unsigned int x, unsigned int y) const;
+    uint32_t getWidth() const;
+    uint32_t getHeight() const;
     void read();
-    void write();
+    void write(std::vector<std::vector<Pixel>> const& pixelVector);
 };
