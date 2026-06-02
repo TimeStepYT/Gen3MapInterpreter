@@ -26,9 +26,22 @@ void PngHandler::readPixels() {
     auto* const info = this->m_info;
     auto const height = this->m_height;
 
+    bool changedInfo = false;
+
     if (this->m_colorType == PNG_COLOR_TYPE_PALETTE) {
         png_set_palette_to_rgb(png);
+        changedInfo = true;
+    }
+
+    if (png_get_valid(png, info, PNG_INFO_tRNS)) {
+        png_set_tRNS_to_alpha(png);
+        changedInfo = true;
+    }
+
+    if (changedInfo) {
         png_read_update_info(png, info);
+
+        this->m_bitDepth = png_get_bit_depth(png, info);
     }
 
     size_t rowSize = png_get_rowbytes(png, info);
@@ -50,12 +63,26 @@ void PngHandler::readPixels() {
 }
 
 void PngHandler::deepCopyRows(png_byte** rows, size_t rowSize) {
+    uint8_t bytesPerPixel = rowSize / this->m_width;
+
     this->m_rows.reserve(this->m_height);
 
     for (int y = 0; y < this->m_height; ++y) {
-        std::vector<png_byte> newVec(rows[y], rows[y] + rowSize);
+        std::vector<Pixel> newVec;
+        newVec.reserve(this->m_width);
 
-        this->m_rows.emplace_back(std::move(newVec));
+        for (int x = 0; x < this->m_width; ++x) {
+            Pixel newPixel{
+                rows[y][x*bytesPerPixel],
+                rows[y][x*bytesPerPixel + 1],
+                rows[y][x*bytesPerPixel + 2]
+            };
+            
+            if (bytesPerPixel == 4)
+                newPixel.a = rows[y][x*bytesPerPixel + 3];
+            newVec.emplace_back(newPixel);
+        }
+        this->m_rows.emplace_back(newVec);
     }
 }
 
@@ -123,7 +150,8 @@ void PngHandler::read() {
 
     auto px = this->m_rows[0];
 
-    std::cout << "First Pixel: " << static_cast<int>(px[0]) << ' ' << static_cast<int>(px[1]) << ' ' << static_cast<int>(px[2]) << std::endl;
+    std::cout << 
+        "First Pixel: " << px[0] << std::endl;
 
     
     err = fclose(file);
