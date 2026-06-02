@@ -205,7 +205,16 @@ void PngHandler::writePixels() {
 }
 
 void PngHandler::write(std::vector<std::vector<Pixel>> const& pixelVector) {
-    if (pixelVector.size() == 0) {
+    this->m_rows = pixelVector;
+    this->writePipeline();
+}
+void PngHandler::write(std::vector<std::vector<Pixel>>&& pixelVector) {
+    this->m_rows = std::move(pixelVector);
+    this->writePipeline();
+}
+
+void PngHandler::writePipeline() {
+    if (this->m_rows.size() == 0) {
         std::cerr << "Pixel vector is empty" << std::endl;
         return;
     }
@@ -255,8 +264,6 @@ void PngHandler::write(std::vector<std::vector<Pixel>> const& pixelVector) {
 
     // Finally getting to the actual writing part
     png_init_io(png, file);
-    
-    this->m_rows = std::move(pixelVector);
 
     auto const width = this->m_rows[0].size();
     auto const height = this->m_rows.size();
