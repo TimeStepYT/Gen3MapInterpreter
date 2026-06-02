@@ -2,13 +2,15 @@ cmake_minimum_required(VERSION 4.3.2)
 
 project(Gen3MapInterpreter)
 
-message(${PROJECT_NAME})
+message("Configuring project: ${PROJECT_NAME}")
 
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include_directories(${PROJECT_NAME}
-    include
-)
+include(cmake/CPM.cmake)
+
+CPMAddPackage(gh:madler/zlib@1.3.2)
+CPMAddPackage(gh:pnggroup/libpng@1.6.58)
 
 add_executable(${PROJECT_NAME}
     src/main.cpp
@@ -18,9 +20,11 @@ add_executable(${PROJECT_NAME}
     src/PngHandler.cpp
 )
 
-include(cmake/CPM.cmake)
+target_include_directories(${PROJECT_NAME} PRIVATE
+    include
+)
 
-CPMAddPackage(gh:madler/zlib@1.3.2)
-CPMAddPackage(gh:pnggroup/libpng@1.6.58)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE zlib png_shared)
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    zlib
+    png_shared
+)

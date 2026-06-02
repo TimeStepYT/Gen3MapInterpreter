@@ -1,10 +1,9 @@
 #include <vector>
 #include <cstring>
 
-#include <png.h>
-
 #include <FileHandler.hpp>
 #include <MapProcessor.hpp>
+#include <PngHandler.hpp>
 
 std::filesystem::path filePath;
 int width = 8;
