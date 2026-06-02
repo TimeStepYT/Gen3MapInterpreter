@@ -122,8 +122,6 @@ void PngHandler::read() {
         return;
     }
 
-    // Gonna add comments here so i know what i'm doing in the future
-    // This shit is the signature check
     unsigned char sig[8];
   
     fread(sig, 1, 8, file);
@@ -133,8 +131,6 @@ void PngHandler::read() {
         return;
     }
 
-    // This shit creates the png structs and handles errors
-    
     auto png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
     if (!png) {
         std::cerr << "Couldn't create PNG struct" << std::endl;
@@ -152,7 +148,6 @@ void PngHandler::read() {
         return;
     }
     
-    // Idk this is in the tutorial, don't ask me what this does. It just checks for errors
     if (setjmp(png_jmpbuf(png))) {
         png_destroy_read_struct(&png, &this->m_info, nullptr);
         std::cerr << "An Error occurred" << std::endl;
@@ -160,7 +155,6 @@ void PngHandler::read() {
         return;
     }
 
-    // Finally getting to the actual reading part
     png_init_io(png, file);
     png_set_sig_bytes(png, 8);
     png_read_info(png, this->m_info);
@@ -238,8 +232,6 @@ void PngHandler::writePipeline() {
         return;
     }
 
-    // Gonna add comments here so i know what i'm doing in the future
-    // This shit creates the png structs and handles errors
     auto png = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
     if (!png) {
         std::cerr << "Couldn't create PNG struct" << std::endl;
@@ -257,7 +249,6 @@ void PngHandler::writePipeline() {
     }
     this->m_info = info;
     
-    // Idk this is in the tutorial, don't ask me what this does. It just checks for errors
     if (setjmp(png_jmpbuf(png))) {
         png_destroy_write_struct(&png, &info);
         std::cerr << "An Error occurred" << std::endl;
@@ -265,7 +256,6 @@ void PngHandler::writePipeline() {
         return;
     }
 
-    // Finally getting to the actual writing part
     png_init_io(png, file);
 
     auto const width = this->m_rows[0].size();
