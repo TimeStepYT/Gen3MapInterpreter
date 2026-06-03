@@ -23,7 +23,7 @@ add_executable(${PROJECT_NAME}
     src/main.cpp
     src/FileHandler.cpp
     src/MapProcessor.cpp
-    src/MapMetatile.cpp
+    src/LayoutMetatile.cpp
     src/PngHandler.cpp
     src/Palette.cpp
 )

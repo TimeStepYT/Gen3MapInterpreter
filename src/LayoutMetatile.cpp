@@ -1,6 +1,6 @@
-#include <MapMetatile.hpp>
+#include <LayoutMetatile.hpp>
 
-MapMetatile::MapMetatile(uint16_t metatileID) {
+LayoutMetatile::LayoutMetatile(uint16_t metatileID) {
     if (metatileID >= 0x200) {
         this->m_secondTileset = true;
         this->m_tileID = metatileID - 0x200;
@@ -10,10 +10,10 @@ MapMetatile::MapMetatile(uint16_t metatileID) {
     }
 }
 
-bool MapMetatile::isSecondTileset() const {
+bool LayoutMetatile::isSecondTileset() const {
     return this->m_secondTileset;
 }
 
-uint16_t MapMetatile::getTileID() const {
+uint16_t LayoutMetatile::getTileID() const {
     return this->m_tileID;
 }
