@@ -17,6 +17,7 @@ if (zlib_SOURCE_DIR)
 endif()
 
 CPMAddPackage(gh:pnggroup/libpng@1.6.58)
+CPMAddPackage(gh:nlohmann/json@3.12.0)
 
 add_executable(${PROJECT_NAME}
     src/main.cpp
@@ -34,4 +35,5 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME} PRIVATE
     zlibstatic
     png_static
+    nlohmann_json
 )
