@@ -11,6 +11,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include(cmake/CPM.cmake)
 
 CPMAddPackage(gh:madler/zlib@1.3.2)
+
+if (zlib_SOURCE_DIR)
+    set(ZLIB_INCLUDE_DIRS "${zlib_SOURCE_DIR}")
+endif()
+
 CPMAddPackage(gh:pnggroup/libpng@1.6.58)
 
 add_executable(${PROJECT_NAME}
