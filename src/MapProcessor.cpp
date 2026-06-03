@@ -52,6 +52,10 @@ void MapProcessor::printField(std::string const& title, T Tile::* field) {
             else
                 std::cout << "\033[1;42m";
         }
+        if (field == &Tile::elevation) {
+            auto colorValue = value * 51;
+            std::cout << std::dec << "\033[48;2;" << colorValue << ";" << colorValue << ";" << colorValue << "m";
+        }
         
         std::cout << std::hex << static_cast<int>(value);
 
