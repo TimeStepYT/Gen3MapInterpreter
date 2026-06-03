@@ -1,4 +1,4 @@
-#include <MapMetatile.hpp>
+#include <LayoutMetatile.hpp>
 #include <MapProcessor.hpp>
 #include <iostream>
 
@@ -67,7 +67,7 @@ void MapProcessor::printField(std::string const& title, T Tile::* field) {
     std::cout << '\n';
 }
 
-void MapProcessor::printField(std::string const& title, MapMetatile Tile::* field) {
+void MapProcessor::printField(std::string const& title, LayoutMetatile Tile::* field) {
     std::cout << title << '\n';
     std::ios state(nullptr);
 
@@ -78,7 +78,7 @@ void MapProcessor::printField(std::string const& title, MapMetatile Tile::* fiel
         if (i != 0 && i % this->m_width == 0)
             std::cout << '\n';
         
-        MapMetatile const& value = tile.*field;
+        LayoutMetatile const& value = tile.*field;
 
         std::cout << "(" << static_cast<int>(value.isSecondTileset()) + 1 << ") " << value.getTileID() << ' ';
 
