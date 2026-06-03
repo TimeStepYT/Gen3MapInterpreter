@@ -1,6 +1,8 @@
+#include <iostream>
+
 #include <LayoutMetatile.hpp>
 #include <MapProcessor.hpp>
-#include <iostream>
+#include <global.hpp>
 
 void MapProcessor::processBytes(BytesVector const& bytes, int width) {
     this->m_width = width;
@@ -91,6 +93,51 @@ void MapProcessor::printField(std::string const& title, LayoutMetatile Tile::* f
     }
     std::cout.copyfmt(state);
     std::cout << '\n';
+}
+
+std::string MapProcessor::getTilesetFolderName(std::string const& tileset) {
+    // I need to turn "gTileset_BattlePyramid" into "battle_pyramid".
+    // If I notice any inconsistencies where this is not enough to turn it into the folder name,
+    // then I'll just add it to an if else block whatever
+
+    // Get rid of the prefix "gTileset_"
+    auto res = tileset.substr(9);
+
+    // Get indexes for where to add underscores
+    std::vector<int> indexes;
+
+    bool prevCapitalized = true;
+    for (int i = 0; i < res.size(); ++i) {
+        char c = res.at(i);
+
+        bool isCapitalized = std::isupper(c);
+
+        if (!prevCapitalized && isCapitalized) {
+            indexes.push_back(i);
+        }
+        
+        prevCapitalized = isCapitalized;
+    }
+
+    // Add underscores
+    for (int i = 0; i < indexes.size(); ++i) {
+        int index = indexes.at(i);
+        res.insert(index + i, "_");
+    }
+
+    // Turn everything lower case
+    for (char& c : res) {
+        c = std::tolower(c);
+    }
+
+    return res;
+}
+
+void MapProcessor::setTilesets(std::string const& primary, std::string const& secondary) {
+    std::filesystem::path const tilesetsPath = global::g_rootPath / "data/tilesets";
+
+    this->m_primTilesetPath = tilesetsPath / "primary" / this->getTilesetFolderName(primary);
+    this->m_secTilesetPath = tilesetsPath / "secondary" / this->getTilesetFolderName(secondary);
 }
 
 void MapProcessor::printData() {
