@@ -2,16 +2,18 @@
 #include <cstring>
 #include <iostream>
 
+#include <global.hpp>
 #include <FileHandler.hpp>
 #include <MapProcessor.hpp>
 #include <PngHandler.hpp>
 #include <Palette.hpp>
 
 std::string layoutID;
-std::filesystem::path rootPath{"../../"};
 int width = 8;
 bool simple = false;
 bool showMetatileInfo = false;
+
+nlohmann::json layoutInfo;
 
 void readArgument(char** argv, int argc, int i, char const* name, int& var) {
     if (strcmp(argv[i], name) != 0)
@@ -44,7 +46,7 @@ void parseArguments(int argc, char** argv) {
     for (int i = 2; i < argc; ++i) {
         auto* arg = argv[i];
 
-        readArgument(argv, argc, i, "-root", rootPath);
+        readArgument(argv, argc, i, "-root", global::g_rootPath);
         readArgument(argv, argc, i, "-simple", simple);
         readArgument(argv, argc, i, "-metatiles", showMetatileInfo);
     }
@@ -52,6 +54,7 @@ void parseArguments(int argc, char** argv) {
 
 void handleFileContent(FileHandler const& fileHandler) {
     MapProcessor mapProcessor;
+    mapProcessor.setTilesets(layoutInfo["primary_tileset"], layoutInfo["secondary_tileset"]);
     mapProcessor.showMetatileInfo(showMetatileInfo);
     mapProcessor.simpleMode(simple);
 
@@ -91,12 +94,11 @@ int main(int argc, char** argv) {
 
     FileHandler jsonFileHandler;
     jsonFileHandler.setReadErrorMessage("Please provide the root directory with -root");
-    jsonFileHandler.readJsonFile(rootPath / "data/layouts/layouts.json");
+    jsonFileHandler.readJsonFile(global::g_rootPath / "data/layouts/layouts.json");
 
     auto const& json = jsonFileHandler.getJsonContent();
     auto layouts = json["layouts"];
 
-    nlohmann::json layoutInfo;
     bool found = false;
     for (auto const& layout : layouts) {
         if (layout["id"] != layoutID)
@@ -115,7 +117,7 @@ int main(int argc, char** argv) {
     width = layoutInfo["width"];
 
     FileHandler fileHandler;
-    bool successReading = fileHandler.readBinaryFile(rootPath / layoutInfo["blockdata_filepath"]);
+    bool successReading = fileHandler.readBinaryFile(global::g_rootPath / layoutInfo["blockdata_filepath"]);
     if (!successReading)
         return 0;
     
