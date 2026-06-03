@@ -3,6 +3,18 @@
 #include <iostream>
 #include <stdio.h>
 
+#ifndef _WIN32
+auto fopen_s(FILE **f, const char *name, const char *mode) {
+    auto ret = 0;
+
+    *f = fopen(name, mode);
+
+    if (!*f)
+        ret = errno;
+    return ret;
+}
+#endif
+
 PngHandler::PngHandler(std::filesystem::path const& path) {
     this->m_path = path;
 }
@@ -125,7 +137,7 @@ void PngHandler::read() {
 
     FILE* file;
 
-    errno_t err = fopen_s(&file, path.string().c_str(), "rb");
+    auto err = fopen_s(&file, path.string().c_str(), "rb");
 
     if (err != 0) {
         std::cerr << "Couldn't open file " << path << std::endl;
@@ -237,7 +249,7 @@ void PngHandler::writePipeline() {
 
     FILE* file;
 
-    errno_t err = fopen_s(&file, path.string().c_str(), "wb");
+    auto err = fopen_s(&file, path.string().c_str(), "wb");
 
     if (err != 0) {
         std::cerr << "Couldn't open file " << path << std::endl;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <optional>
 #include <png.h>
 
 #include <Palette.hpp>
