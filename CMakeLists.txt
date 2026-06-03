@@ -1,9 +1,10 @@
-cmake_minimum_required(VERSION 4.3.2)
+cmake_minimum_required(VERSION 3.28.3)
 
 project(Gen3MapInterpreter)
 
 message("Configuring project: ${PROJECT_NAME}")
 
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -26,6 +27,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    zlib
-    png_shared
+    zlibstatic
+    png_static
 )
