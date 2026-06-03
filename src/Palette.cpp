@@ -44,6 +44,17 @@ Palette Palette::fromFile(std::filesystem::path filePath) {
     return res;
 }
 
+void Palette::setColors(std::vector<png_color> const& colors) {
+    this->m_colors = colors;
+}
+
+void Palette::setColor(int index, png_color const& color) {
+    if (index >= this->m_colors.size())
+        this->m_colors.resize(index + 1);
+
+    this->m_colors.at(index) = color;
+}
+
 std::vector<png_color> const& Palette::getColors() {
     return this->m_colors;
 }
