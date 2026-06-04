@@ -14,6 +14,33 @@ void FileHandler::printFileNotHereError(std::filesystem::path filePath) {
     std::cerr << "The file " << filePath << " doesn't exist!" << std::endl;
 }
 
+std::unique_ptr<std::vector<uint16_t>> FileHandler::getU16Vector() const {
+    if (!this->m_hasRead) {
+        std::cerr << "File not read before getting the u16 vector" << std::endl;
+        return nullptr;
+    }
+
+    auto bytes = std::make_unique<std::vector<uint16_t>>();
+
+    bool isFirstPart = true;
+    uint8_t firstPart = 0;
+    for (uint8_t byte : this->getBinaryContent()) {
+        if (isFirstPart) {
+            firstPart = byte;
+        }
+        else {
+            uint16_t resByte = byte << 8;
+            resByte += firstPart;
+
+            bytes->emplace_back(resByte);
+        }
+
+        isFirstPart = !isFirstPart;
+    }
+
+    return bytes;
+}
+
 bool FileHandler::readBinaryFile(std::filesystem::path const& filePath) {
     if (!std::filesystem::exists(filePath)) {
         this->printFileNotHereError(filePath);
