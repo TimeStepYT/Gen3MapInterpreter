@@ -15,6 +15,7 @@ class FileHandler {
 
 public:
 
+    std::unique_ptr<std::vector<uint16_t>> getU16Vector() const;
     bool readBinaryFile(std::filesystem::path const&);
     bool readJsonFile(std::filesystem::path const&);
     std::vector<uint8_t> const& getBinaryContent() const;

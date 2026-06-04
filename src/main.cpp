@@ -1,6 +1,7 @@
 #include <vector>
 #include <cstring>
 #include <iostream>
+#include <locale>
 
 #include <global.hpp>
 #include <FileHandler.hpp>
@@ -52,46 +53,7 @@ void parseArguments(int argc, char** argv) {
     }
 }
 
-void handleFileContent(FileHandler const& fileHandler) {
-    MapProcessor mapProcessor;
-    mapProcessor.setTilesets(layoutInfo["primary_tileset"], layoutInfo["secondary_tileset"]);
-    mapProcessor.showMetatileInfo(showMetatileInfo);
-    mapProcessor.simpleMode(simple);
-
-    auto bytes = std::make_unique<std::vector<uint16_t>>();
-
-    bool isFirstPart = true;
-    uint8_t firstPart = 0;
-    for (uint8_t byte : fileHandler.getBinaryContent()) {
-        if (isFirstPart) {
-            firstPart = byte;
-        }
-        else {
-            uint16_t resByte = byte << 8;
-            resByte += firstPart;
-
-            bytes->emplace_back(resByte);
-        }
-
-        isFirstPart = !isFirstPart;
-    }
-
-    mapProcessor.processBytes(bytes, width);
-    mapProcessor.printData();
-}
-
-int main(int argc, char** argv) {
-    if (argc < 2) {
-        std::puts("Syntax: Gen3MapInterpreter.exe <layout ID> [OPTIONS]");
-        std::puts("    -simple         Only shows the collision data");
-        std::puts("    -metatiles      Only show metatile info");
-        std::puts("    -root           Set the root directory for the Pokémon Emerald decomp");
-
-        return 0;
-    }
-    
-    parseArguments(argc, argv);
-
+bool findLayoutInfo() {
     FileHandler jsonFileHandler;
     jsonFileHandler.setReadErrorMessage("Please provide the root directory with -root");
     jsonFileHandler.readJsonFile(global::g_rootPath / "data/layouts/layouts.json");
@@ -113,6 +75,37 @@ int main(int argc, char** argv) {
         std::cout << "Couldn't find anything with the layout ID \"" << layoutID << '\"';
         return 0;
     }
+    return true;
+}
+
+void handleBlockDataFileContent(FileHandler const& fileHandler) {
+    MapProcessor mapProcessor;
+    mapProcessor.setTilesets(layoutInfo["primary_tileset"], layoutInfo["secondary_tileset"]);
+    mapProcessor.showMetatileInfo(showMetatileInfo);
+    mapProcessor.simpleMode(simple);
+
+    auto bytes = fileHandler.getU16Vector();
+
+    mapProcessor.processBytes(bytes, width);
+    mapProcessor.printData();
+}
+
+int main(int argc, char** argv) {
+    std::locale::global(std::locale("en_US.UTF-8"));
+
+    if (argc < 2) {
+        std::puts("Syntax: Gen3MapInterpreter.exe <layout ID> [OPTIONS]");
+        std::puts("    -simple         Only shows the collision data");
+        std::puts("    -metatiles      Only show metatile info");
+        std::puts("    -root           Set the root directory for the Pokémon Emerald decomp");
+
+        return 0;
+    }
+    
+    parseArguments(argc, argv);
+
+    if (!findLayoutInfo())
+        return 0;
 
     width = layoutInfo["width"];
 
@@ -121,7 +114,7 @@ int main(int argc, char** argv) {
     if (!successReading)
         return 0;
     
-    handleFileContent(fileHandler);
+    handleBlockDataFileContent(fileHandler);
 
     // if (!simple)
     //     getchar();
