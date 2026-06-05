@@ -50,6 +50,7 @@ void parseArguments(int argc, char** argv) {
         readArgument(argv, argc, i, "-root", global::g_rootPath);
         readArgument(argv, argc, i, "-simple", simple);
         readArgument(argv, argc, i, "-metatiles", showMetatileInfo);
+        readArgument(argv, argc, i, "-o", global::g_outputPath);
     }
 }
 
@@ -87,7 +88,8 @@ void handleBlockDataFileContent(FileHandler const& fileHandler) {
     auto bytes = fileHandler.getU16Vector();
 
     mapProcessor.processBytes(bytes, width);
-    mapProcessor.printData();
+    // mapProcessor.printData();
+    mapProcessor.renderMap(global::g_outputPath);
 }
 
 int main(int argc, char** argv) {

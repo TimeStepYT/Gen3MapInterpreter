@@ -27,8 +27,14 @@ uint32_t PngHandler::getHeight() const {
     return this->m_height;
 }
 
+Pixel errorPixel{0, 0, 0, 0};
+
 Pixel const& PngHandler::getPixel(unsigned int x, unsigned int y) const {
-    return this->m_rows[y][x];
+    if (y >= this->m_rows.size() || x >= this->m_rows.at(0).size()) {
+        std::cerr << "Index (" << x << ", " << y << ") out of bounds" << std::endl;
+        return errorPixel;
+    }
+    return this->m_rows.at(y).at(x);
 }
 
 std::vector<std::vector<Pixel>> const& PngHandler::getAllPixels() const {
