@@ -106,15 +106,20 @@ void MapProcessor::printField(std::string const& title, LayoutMetatile Tile::* f
     std::cout << '\n';
 }
 
-std::string MapProcessor::getTilesetFolderName(std::string const& tileset) {
-    // I need to turn "gTileset_BattlePyramid" into "battle_pyramid".
-    // If I notice any inconsistencies where this is not enough to turn it into the folder name,
-    // then I'll just add it to an if else block whatever
+void MapProcessor::renderMap(std::filesystem::path const& outputPath) {
+    if (!this->m_primTileset.has_value()) {
+        std::cerr << "Can't render the map, please use MapProcessor::setTileset() first!";
+        return;
+    }
+    this->m_primTileset->readMetatiles();
+    this->m_secTileset->readMetatiles();
 
-    // Get rid of the prefix "gTileset_"
+    this->renderMetatiles();
+}
+
+std::string MapProcessor::getTilesetFolderName(std::string const& tileset) {
     auto res = tileset.substr(9);
 
-    // Get indexes for where to add underscores
     std::vector<int> indexes;
 
     bool prevCapitalized = true;
@@ -130,13 +135,11 @@ std::string MapProcessor::getTilesetFolderName(std::string const& tileset) {
         prevCapitalized = isCapitalized;
     }
 
-    // Add underscores
     for (int i = 0; i < indexes.size(); ++i) {
         int index = indexes.at(i);
         res.insert(index + i, "_");
     }
 
-    // Turn everything lower case
     for (char& c : res) {
         c = std::tolower(c);
     }
@@ -147,8 +150,8 @@ std::string MapProcessor::getTilesetFolderName(std::string const& tileset) {
 void MapProcessor::setTilesets(std::string const& primary, std::string const& secondary) {
     std::filesystem::path const tilesetsPath = global::g_rootPath / "data/tilesets";
 
-    this->m_primTilesetPath = tilesetsPath / "primary" / this->getTilesetFolderName(primary);
-    this->m_secTilesetPath = tilesetsPath / "secondary" / this->getTilesetFolderName(secondary);
+    this->m_primTileset = Tileset{tilesetsPath / "primary" / this->getTilesetFolderName(primary)};
+    this->m_secTileset = Tileset{tilesetsPath / "secondary" / this->getTilesetFolderName(secondary)};
 }
 
 void MapProcessor::printData() {
@@ -167,4 +170,75 @@ void MapProcessor::printData() {
     this->printField("\nElevation:", &Tile::elevation);
     this->printField("\nAdvanceMap format:", &Tile::advanceMapFormat);
     std::cout << std::endl;
+}
+
+void MapProcessor::renderMetatiles() const {
+    auto const& primMetatiles = this->m_primTileset->getMetatiles();
+    auto const& secMetatiles = this->m_secTileset->getMetatiles();
+
+    if (this->m_primTileset->getMetatiles().size() == 0) {
+        std::cerr << "Call Tileset::readMetatiles() before MapProcessor::renderMetatiles()" << std::endl;
+        return;
+    }
+
+    // Prefill the vector for easier access
+    std::vector<std::vector<Pixel>> output;
+    output.reserve(secMetatiles.size() * 16);
+
+    std::vector<Pixel> bufferVec;
+    bufferVec.reserve(16);
+
+    for (size_t y = 0; y < secMetatiles.size() * 16; ++y) {
+        bufferVec.clear();
+        for (int x = 0; x < bufferVec.capacity(); x++) {
+            bufferVec.emplace_back(0, 0, 0, 0);
+        }
+        output.push_back(bufferVec);
+    }
+
+
+
+    for (size_t i = 0; i < secMetatiles.size(); ++i) {
+        auto const& metatile = secMetatiles.at(i);
+        auto const& backgroundTiles = metatile.getBackgroundTiles();
+        auto const& foregroundTiles = metatile.getForegroundTiles();
+    
+        int xOffset = 0;
+        int yOffset = 0;
+
+        for (int metatilePartIndex = 0; metatilePartIndex < backgroundTiles.size(); ++metatilePartIndex) {
+            auto const& tile = backgroundTiles.at(metatilePartIndex);
+
+            std::array<std::array<Pixel, 8>, 8> tilePixels;
+
+            if (tile.isSecTileset()) {
+                tilePixels = this->m_secTileset->getTilePixels(tile);
+            }
+            else {
+                tilePixels = this->m_primTileset->getTilePixels(tile);
+            }
+            
+            if (metatilePartIndex >= 2)
+                yOffset = 8;
+        
+            if (metatilePartIndex % 2 == 1)
+                xOffset = 8;
+            else
+                xOffset = 0;
+    
+            int yTile = 0;
+            for (auto const& tileRow : tilePixels) {
+                int x = 0;
+                for (auto const& pixel : tileRow) {
+                    output.at(i * 16 + yTile + yOffset).at(x + xOffset) = pixel;
+                    ++x;
+                }
+                ++yTile;
+            }
+        }
+    }
+
+    PngHandler outputHandler{global::g_outputPath / "output.png"};
+    outputHandler.write(output);
+    std::puts("Exported Metatileset");
 }
