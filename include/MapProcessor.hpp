@@ -10,7 +10,7 @@
 
 class MapProcessor {
     using BytesVector = std::unique_ptr<std::vector<uint16_t>>;
-    struct Tile {
+    struct LayoutTile {
         LayoutMetatile metatile {0};
         uint8_t collision = 0;
         uint8_t elevation = 0;
@@ -18,15 +18,15 @@ class MapProcessor {
     };
     
     int m_width = 0;
-    std::vector<Tile> m_tiles;
+    std::vector<LayoutTile> m_layoutTiles;
     bool m_showMetatileInfo = false;
     bool m_simple = false;
     std::optional<Tileset> m_primTileset;
     std::optional<Tileset> m_secTileset;
     
     template <typename T>
-    void printField(std::string const& title, T Tile::* field);
-    void printField(std::string const& title, LayoutMetatile Tile::* field);
+    void printField(std::string const& title, T LayoutTile::* field);
+    void printField(std::string const& title, LayoutMetatile LayoutTile::* field);
     // Turns strings like "gTileset_BattlePyramid" into "battle_pyramid"
     std::string getTilesetFolderName(std::string const& tileset);
     void renderMetatiles() const;

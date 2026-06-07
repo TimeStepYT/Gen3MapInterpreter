@@ -12,6 +12,7 @@ class Metatile {
     std::array<Tile, 4> m_backgroundTiles;
 
 public:
+    Metatile() = default;
     Metatile(std::array<std::uint16_t, 8> const& array);
     std::array<Tile, 4> const& getBackgroundTiles() const;
     std::array<Tile, 4> const& getForegroundTiles() const;
