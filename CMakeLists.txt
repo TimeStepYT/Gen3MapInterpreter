@@ -29,6 +29,7 @@ add_executable(${PROJECT_NAME}
     src/Tileset.cpp
     src/Metatile.cpp
     src/Tile.cpp
+    src/Pixel.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
