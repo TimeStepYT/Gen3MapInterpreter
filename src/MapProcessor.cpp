@@ -176,36 +176,46 @@ void MapProcessor::renderMetatiles() const {
     auto const& primMetatiles = this->m_primTileset->getMetatiles();
     auto const& secMetatiles = this->m_secTileset->getMetatiles();
 
+    size_t const amountMetatiles = secMetatiles.size();
+
     if (this->m_primTileset->getMetatiles().size() == 0) {
         std::cerr << "Call Tileset::readMetatiles() before MapProcessor::renderMetatiles()" << std::endl;
         return;
     }
 
+    int const width = 5;
+
+    int const outputHeight = ceil(static_cast<float>(amountMetatiles) / width) * 16;
+    int const outputWidth = 16 * width;
+
     // Prefill the vector for easier access
     std::vector<std::vector<Pixel>> output;
-    output.reserve(secMetatiles.size() * 16);
+    output.reserve(outputHeight);
 
     std::vector<Pixel> bufferVec;
-    bufferVec.reserve(16);
+    bufferVec.reserve(outputWidth);
 
-    for (size_t y = 0; y < secMetatiles.size() * 16; ++y) {
+    for (size_t y = 0; y < outputHeight; ++y) {
         bufferVec.clear();
         for (int x = 0; x < bufferVec.capacity(); x++) {
             bufferVec.emplace_back(0, 0, 0, 0);
         }
         output.push_back(bufferVec);
     }
-
-
-
-    for (size_t i = 0; i < secMetatiles.size(); ++i) {
-        auto const& metatile = secMetatiles.at(i);
+    
+    // Go through all the metatiles
+    for (size_t metatileIndex = 0; metatileIndex < amountMetatiles; ++metatileIndex) {
+        auto const& metatile = secMetatiles.at(metatileIndex);
         auto const& backgroundTiles = metatile.getBackgroundTiles();
         auto const& foregroundTiles = metatile.getForegroundTiles();
-    
+        
+        int metatileX = (metatileIndex % width) * 16;
+        int metatileY = (metatileIndex / width) * 16;
+
         int xOffset = 0;
         int yOffset = 0;
 
+        // Drawing every metatile part (tile)
         for (int metatilePartIndex = 0; metatilePartIndex < backgroundTiles.size(); ++metatilePartIndex) {
             auto const& tile = backgroundTiles.at(metatilePartIndex);
 
@@ -226,12 +236,13 @@ void MapProcessor::renderMetatiles() const {
             else
                 xOffset = 0;
     
+            // Put the pixels in the bag
             int yTile = 0;
             for (auto const& tileRow : tilePixels) {
-                int x = 0;
+                int xTile = 0;
                 for (auto const& pixel : tileRow) {
-                    output.at(i * 16 + yTile + yOffset).at(x + xOffset) = pixel;
-                    ++x;
+                    output.at(metatileY + yTile + yOffset).at(metatileX + xTile + xOffset) = pixel;
+                    ++xTile;
                 }
                 ++yTile;
             }

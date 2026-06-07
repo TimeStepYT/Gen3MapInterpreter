@@ -97,9 +97,10 @@ int main(int argc, char** argv) {
 
     if (argc < 2) {
         std::puts("Syntax: Gen3MapInterpreter.exe <layout ID> [OPTIONS]");
-        std::puts("    -simple         Only shows the collision data");
-        std::puts("    -metatiles      Only show metatile info");
-        std::puts("    -root           Set the root directory for the Pokémon Emerald decomp");
+        std::puts("    -simple            Only shows the collision data");
+        std::puts("    -metatiles         Only show metatile info");
+        std::puts("    -root <directory>  Set the root directory for the Pokémon Emerald decomp");
+        std::puts("    -o <directory>     Set the output directory for the exported PNG");
 
         return 0;
     }

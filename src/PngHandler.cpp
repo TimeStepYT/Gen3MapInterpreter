@@ -34,7 +34,13 @@ Pixel const& PngHandler::getPixel(unsigned int x, unsigned int y) const {
         std::cerr << "Index (" << x << ", " << y << ") out of bounds" << std::endl;
         return errorPixel;
     }
-    return this->m_rows.at(y).at(x);
+
+    auto const& res = this->m_rows.at(y).at(x);
+
+    // if (res.r == 0xde && res.g == 0xad && res.b == 0xbe)
+    //     return errorPixel;
+
+    return res;
 }
 
 std::vector<std::vector<Pixel>> const& PngHandler::getAllPixels() const {
@@ -70,11 +76,19 @@ void PngHandler::readPixels() {
     auto const height = this->m_height;
 
     bool changedInfo = false;
+    
+    std::vector<png_color> colorOnlyVec;
 
     if (this->m_colorType == PNG_COLOR_TYPE_PALETTE) {
         if (this->m_newPalette.has_value()) {
             auto pal = m_newPalette->getColors();
-            png_set_PLTE(png, info, pal.data(), pal.size());
+
+            colorOnlyVec.reserve(pal.size());
+
+            for (auto const& pixel : pal)
+                colorOnlyVec.emplace_back(pixel.r, pixel.g, pixel.b);
+
+            png_set_PLTE(png, info, colorOnlyVec.data(), pal.size());
         }
 
         png_set_palette_to_rgb(png);
