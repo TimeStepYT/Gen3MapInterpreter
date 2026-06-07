@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include <Metatile.hpp>
 #include <LayoutMetatile.hpp>
 #include <MapProcessor.hpp>
 #include <global.hpp>
@@ -11,7 +12,7 @@ void MapProcessor::processBytes(BytesVector const& bytes, int width) {
     // Then 2 bits for collision data
     // Then 4 bits for elevation data
 
-    this->m_tiles.reserve(bytes->size());
+    this->m_layoutTiles.reserve(bytes->size());
 
     for (auto it = bytes->begin(); it != bytes->end(); it++) {
         uint16_t const& byte = *it;
@@ -20,7 +21,7 @@ void MapProcessor::processBytes(BytesVector const& bytes, int width) {
         uint8_t elevation = byte >> 12;
         uint8_t advanceMapFormat = (elevation << 2) + collision;
 
-        this->m_tiles.emplace_back(metatile, collision, elevation, advanceMapFormat);
+        this->m_layoutTiles.emplace_back(metatile, collision, elevation, advanceMapFormat);
     }
 }
 
@@ -33,26 +34,26 @@ void MapProcessor::showMetatileInfo(bool show) {
 }
 
 template <typename T>
-void MapProcessor::printField(std::string const& title, T Tile::* field) {
+void MapProcessor::printField(std::string const& title, T LayoutTile::* field) {
     std::cout << title << '\n';
     std::ios state(nullptr);
 
     state.copyfmt(std::cout);
-    for (int i = 0; i < this->m_tiles.size(); ++i) {
-        auto const& tile = this->m_tiles.at(i);
+    for (int i = 0; i < this->m_layoutTiles.size(); ++i) {
+        auto const& tile = this->m_layoutTiles.at(i);
         
         if (i != 0 && i % this->m_width == 0)
             std::cout << '\n';
         
         T const& value = tile.*field;
 
-        if (field == &Tile::collision) {
+        if (field == &LayoutTile::collision) {
             if (value != 0)
                 std::cout << "\033[1;41m";
             else
                 std::cout << "\033[1;42m";
         }
-        if (field == &Tile::elevation) {
+        if (field == &LayoutTile::elevation) {
             switch (value) {
             case 1:
                 std::cout << "\033[1;44m";
@@ -66,7 +67,7 @@ void MapProcessor::printField(std::string const& title, T Tile::* field) {
         
         std::cout << std::hex << static_cast<int>(value);
 
-        if (reinterpret_cast<uint8_t Tile::*>(field) == &Tile::advanceMapFormat) {
+        if (reinterpret_cast<uint8_t LayoutTile::*>(field) == &LayoutTile::advanceMapFormat) {
             if (value <= 0xf)
                 std::cout << ' ';
         }
@@ -80,13 +81,13 @@ void MapProcessor::printField(std::string const& title, T Tile::* field) {
     std::cout << '\n';
 }
 
-void MapProcessor::printField(std::string const& title, LayoutMetatile Tile::* field) {
+void MapProcessor::printField(std::string const& title, LayoutMetatile LayoutTile::* field) {
     std::cout << title << '\n';
     std::ios state(nullptr);
 
     state.copyfmt(std::cout);
-    for (int i = 0; i < this->m_tiles.size(); ++i) {
-        auto const& tile = this->m_tiles.at(i);
+    for (int i = 0; i < this->m_layoutTiles.size(); ++i) {
+        auto const& tile = this->m_layoutTiles.at(i);
         
         if (i != 0 && i % this->m_width == 0)
             std::cout << '\n';
@@ -114,7 +115,91 @@ void MapProcessor::renderMap(std::filesystem::path const& outputPath) {
     this->m_primTileset->readMetatiles();
     this->m_secTileset->readMetatiles();
 
-    this->renderMetatiles();
+    // this->renderMetatiles();
+
+    auto const& primMetatiles = this->m_primTileset->getMetatiles();
+    auto const& secMetatiles = this->m_secTileset->getMetatiles();
+
+    if (this->m_primTileset->getMetatiles().size() == 0) {
+        std::cerr << "Call Tileset::readMetatiles() before MapProcessor::renderMetatiles()" << std::endl;
+        return;
+    }
+
+    int const outputWidth = this->m_width * 16;
+    int const outputHeight = ceil(static_cast<float>(this->m_layoutTiles.size()) / this->m_width) * 16;
+
+    // Prefill the vector for easier access
+    std::vector<std::vector<Pixel>> output;
+    output.reserve(outputHeight);
+
+    std::vector<Pixel> bufferVec;
+    bufferVec.reserve(outputWidth);
+
+    for (size_t y = 0; y < outputHeight; ++y) {
+        bufferVec.clear();
+        for (int x = 0; x < bufferVec.capacity(); x++) {
+            bufferVec.emplace_back(0, 0, 0, 0);
+        }
+        output.push_back(bufferVec);
+    }
+    
+    // Go through the map layout
+    for (size_t layoutIndex = 0; layoutIndex < this->m_layoutTiles.size(); ++layoutIndex) {
+        auto const& layoutMetatile = this->m_layoutTiles.at(layoutIndex).metatile;
+
+        Metatile metatile;
+
+        if (layoutMetatile.isSecondTileset())
+            metatile = secMetatiles.at(layoutMetatile.getTileID());
+        else
+            metatile = primMetatiles.at(layoutMetatile.getTileID());
+
+        auto const& backgroundTiles = metatile.getBackgroundTiles();
+        auto const& foregroundTiles = metatile.getForegroundTiles();
+        
+        int metatileX = (layoutIndex % this->m_width) * 16;
+        int metatileY = (layoutIndex / this->m_width) * 16;
+
+        int xOffset = 0;
+        int yOffset = 0;
+
+        // Drawing every metatile part (tile)
+        for (int metatilePartIndex = 0; metatilePartIndex < backgroundTiles.size(); ++metatilePartIndex) {
+            auto const& tile = backgroundTiles.at(metatilePartIndex);
+
+            std::array<std::array<Pixel, 8>, 8> tilePixels;
+
+            if (tile.isSecTileset()) {
+                tilePixels = this->m_secTileset->getTilePixels(tile);
+            }
+            else {
+                tilePixels = this->m_primTileset->getTilePixels(tile);
+            }
+            
+            if (metatilePartIndex >= 2)
+                yOffset = 8;
+        
+            if (metatilePartIndex % 2 == 1)
+                xOffset = 8;
+            else
+                xOffset = 0;
+    
+            // Put the pixels in the bag
+            int yTile = 0;
+            for (auto const& tileRow : tilePixels) {
+                int xTile = 0;
+                for (auto const& pixel : tileRow) {
+                    output.at(metatileY + yTile + yOffset).at(metatileX + xTile + xOffset) = pixel;
+                    ++xTile;
+                }
+                ++yTile;
+            }
+        }
+    }
+
+    PngHandler outputHandler{global::g_outputPath / "output.png"};
+    outputHandler.write(output);
+    std::puts("Exported Metatileset");
 }
 
 std::string MapProcessor::getTilesetFolderName(std::string const& tileset) {
@@ -156,19 +241,19 @@ void MapProcessor::setTilesets(std::string const& primary, std::string const& se
 
 void MapProcessor::printData() {
     if (this->m_simple) {
-        this->printField("Collision:", &Tile::collision);
+        this->printField("Collision:", &LayoutTile::collision);
         return;
     }
 
     if (this->m_showMetatileInfo) {
-        this->printField("Metatiles:", &Tile::metatile);
+        this->printField("Metatiles:", &LayoutTile::metatile);
         std::cout << '\n';
         return;
     }
 
-    this->printField("Collision:", &Tile::collision);
-    this->printField("\nElevation:", &Tile::elevation);
-    this->printField("\nAdvanceMap format:", &Tile::advanceMapFormat);
+    this->printField("Collision:", &LayoutTile::collision);
+    this->printField("\nElevation:", &LayoutTile::elevation);
+    this->printField("\nAdvanceMap format:", &LayoutTile::advanceMapFormat);
     std::cout << std::endl;
 }
 
