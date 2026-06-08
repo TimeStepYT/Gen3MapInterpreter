@@ -11,6 +11,7 @@
 class Tileset {
     std::filesystem::path m_rootPath;
     std::vector<Metatile> m_metatiles;
+    PngHandler m_tilesPng;
 public:
     Tileset(std::filesystem::path const&);
     Tileset(std::filesystem::path&&);
@@ -18,7 +19,7 @@ public:
     std::filesystem::path getMetatilesBinPath() const;
     std::filesystem::path getTilesPngPath() const;
     std::filesystem::path getPaletteDir() const;
-    PngHandler getTilesPng() const;
+    PngHandler const& getTilesPng() const;
     Palette getPaletteByIndex(int index) const;
     std::array<std::array<Pixel, 8>, 8> getTilePixels(Tile const& tile) const;
     void readMetatiles();
