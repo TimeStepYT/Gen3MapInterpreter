@@ -63,15 +63,15 @@ std::array<std::array<Pixel, 8>, 8> Tileset::getTilePixels(Tile const& tile) con
     size_t tilesAmount = (tiles.getWidth() / 8) * (tiles.getHeight() / 8);
     
     if (index >= tilesAmount) {
-        for (auto& row : res) {
-            for (Pixel& pixel : row) {
-                pixel = Pixel{0, 0, 0, 0};
+        for (int i = 0; i < 8; ++i) {
+            for (int j = 0; j < 8; ++j) {
+                res.at(i).at(j) = Pixel{0, 0, 0, 0};
             }
         }
 
         return res;
     }
-        
+
     int xTile = (index * 8) % tiles.getWidth();
     int yTile = ((index * 8) / tiles.getWidth()) * 8;
 
@@ -91,9 +91,10 @@ std::array<std::array<Pixel, 8>, 8> Tileset::getTilePixels(Tile const& tile) con
                 res.at(yRes).at(xRes) = Pixel{0, 0, 0, 0};
                 continue;
             }
-
+            
             if (pixelIndex >= palette.getColors().size()) {
                 std::cout << "Pixel index " << pixelIndex << " out of bounds" << std::endl;
+                res.at(yRes).at(xRes) = Pixel{0, 0, 0, 0};
                 continue;
             }
 

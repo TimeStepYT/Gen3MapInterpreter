@@ -107,7 +107,7 @@ void MapProcessor::printField(std::string const& title, LayoutMetatile LayoutTil
     std::cout << '\n';
 }
 
-void MapProcessor::drawMetatilePart(std::array<Tile, 4> metatilePart, std::uint16_t layoutIndex, std::vector<std::vector<Pixel>>& output) {
+void MapProcessor::drawMetatilePart(std::array<Tile, 4> metatilePart, std::uint16_t layoutIndex, std::vector<std::vector<Pixel>>& output) const {
     int metatileX = (layoutIndex % this->m_width) * 16;
     int metatileY = (layoutIndex / this->m_width) * 16;
 
@@ -148,16 +148,7 @@ void MapProcessor::drawMetatilePart(std::array<Tile, 4> metatilePart, std::uint1
     }
 }
 
-void MapProcessor::renderMap(std::filesystem::path const& outputPath) {
-    if (!this->m_primTileset.has_value()) {
-        std::cerr << "Can't render the map, please use MapProcessor::setTileset() first!";
-        return;
-    }
-    this->m_primTileset->readMetatiles();
-    this->m_secTileset->readMetatiles();
-
-    // this->renderMetatiles();
-
+void MapProcessor::renderActualMap() const {
     auto const& primMetatiles = this->m_primTileset->getMetatiles();
     auto const& secMetatiles = this->m_secTileset->getMetatiles();
 
@@ -204,7 +195,20 @@ void MapProcessor::renderMap(std::filesystem::path const& outputPath) {
 
     PngHandler outputHandler{global::g_outputPath / "output.png"};
     outputHandler.write(output);
-    std::puts("Exported Metatileset");
+    std::puts("Exported Map");
+}
+
+void MapProcessor::renderMap(std::filesystem::path const& outputPath) {
+    if (!this->m_primTileset.has_value()) {
+        std::cerr << "Can't render the map, please use MapProcessor::setTileset() first!";
+        return;
+    }
+    this->m_primTileset->readMetatiles();
+    this->m_secTileset->readMetatiles();
+
+    // this->renderMetatiles();
+
+    this->renderActualMap();
 }
 
 std::string MapProcessor::getTilesetFolderName(std::string const& tileset) {
