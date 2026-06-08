@@ -32,9 +32,8 @@ std::vector<Metatile> const& Tileset::getMetatiles() const {
     return this->m_metatiles;
 }
 
-PngHandler Tileset::getTilesPngWithPalette(Palette const& palette) const {
+PngHandler Tileset::getTilesPng() const {
     PngHandler tilesPng{this->getTilesPngPath()};
-    tilesPng.setPalette(palette);
     tilesPng.read();
 
     return tilesPng;
@@ -57,7 +56,7 @@ std::array<std::array<Pixel, 8>, 8> Tileset::getTilePixels(Tile const& tile) con
     auto const& index = tile.getTileID();
 
     Palette palette = this->getPaletteByIndex(tile.getPaletteID());
-    PngHandler tiles = this->getTilesPngWithPalette(palette);
+    PngHandler const& tiles = this->getTilesPng();
 
     std::array<std::array<Pixel, 8>, 8> res;
     
@@ -86,7 +85,19 @@ std::array<std::array<Pixel, 8>, 8> Tileset::getTilePixels(Tile const& tile) con
             if (tile.isFlippedY())
                 pixelY = yTile + (7 - yRes);
 
-            Pixel pixel = tiles.getPixel(pixelX, pixelY);
+            std::uint8_t pixelIndex = tiles.getPixelIndex(pixelX, pixelY);
+
+            if (pixelIndex == 0) { // transparent index
+                res.at(yRes).at(xRes) = Pixel{0, 0, 0, 0};
+                continue;
+            }
+
+            if (pixelIndex >= palette.getColors().size()) {
+                std::cout << "Pixel index " << pixelIndex << " out of bounds" << std::endl;
+                continue;
+            }
+
+            auto pixel = palette.getColors().at(pixelIndex);
         
             res.at(yRes).at(xRes) = pixel;
         }

@@ -19,41 +19,28 @@ PngHandler::PngHandler(std::filesystem::path const& path) {
     this->m_path = path;
 }
 
-uint32_t PngHandler::getWidth() const {
+std::uint32_t PngHandler::getWidth() const {
     return this->m_width;
 }
 
-uint32_t PngHandler::getHeight() const {
+std::uint32_t PngHandler::getHeight() const {
     return this->m_height;
 }
 
-Pixel errorPixel{0, 0, 0, 0};
-
-Pixel const& PngHandler::getPixel(unsigned int x, unsigned int y) const {
-    if (y >= this->m_rows.size() || x >= this->m_rows.at(0).size()) {
+std::uint8_t const& PngHandler::getPixelIndex(unsigned int x, unsigned int y) const {
+    if (y >= this->m_indexRows.size() || x >= this->m_indexRows.at(0).size()) {
         std::cerr << "Index (" << x << ", " << y << ") out of bounds" << std::endl;
-        return errorPixel;
+        static std::uint8_t errorIndex = 0;
+        return errorIndex;
     }
 
-    auto const& res = this->m_rows.at(y).at(x);
-
-    // if (res.r == 0xde && res.g == 0xad && res.b == 0xbe)
-    //     return errorPixel;
+    auto const& res = this->m_indexRows.at(y).at(x);
 
     return res;
 }
 
 std::vector<std::vector<Pixel>> const& PngHandler::getAllPixels() const {
     return this->m_rows;
-}
-
-// Sets the palette for reading indexed images. Run this BEFORE `PngHandler::read()`
-void PngHandler::setPalette(Palette const& palette) {
-    this->m_newPalette = palette;
-
-    if (this->m_hasRead) {
-        std::cout << "WARNING: Called PngHandler::setPalette() after reading" << std::endl;
-    }
 }
 
 void PngHandler::readDetails() {
@@ -80,18 +67,7 @@ void PngHandler::readPixels() {
     std::vector<png_color> colorOnlyVec;
 
     if (this->m_colorType == PNG_COLOR_TYPE_PALETTE) {
-        if (this->m_newPalette.has_value()) {
-            auto pal = m_newPalette->getColors();
-
-            colorOnlyVec.reserve(pal.size());
-
-            for (auto const& pixel : pal)
-                colorOnlyVec.emplace_back(pixel.r, pixel.g, pixel.b);
-
-            png_set_PLTE(png, info, colorOnlyVec.data(), pal.size());
-        }
-
-        png_set_palette_to_rgb(png);
+        png_set_packing(png);
         changedInfo = true;
     }
 
@@ -125,30 +101,21 @@ void PngHandler::readPixels() {
 }
 
 void PngHandler::deepCopyRows(png_byte** rows, size_t rowSize) {
-    uint8_t bytesPerPixel = rowSize / this->m_width;
+    float bytesPerPixel = static_cast<float>(rowSize) / this->m_width;
 
-    this->m_rows.reserve(this->m_height);
+    this->m_indexRows.reserve(this->m_height);
 
-    std::vector<Pixel> buffVec;
+    std::vector<std::uint8_t> buffVec;
     buffVec.reserve(this->m_width);
 
     for (int y = 0; y < this->m_height; ++y) {
         buffVec.clear();
         for (int x = 0; x < this->m_width; ++x) {
-            auto startX = x*bytesPerPixel;
-            
-            uint8_t alpha = 255;
-            if (bytesPerPixel == 4)
-                alpha = rows[y][startX + 3];
+            auto startX = x * static_cast<int>(bytesPerPixel);
 
-            buffVec.emplace_back(
-                rows[y][startX + 0],
-                rows[y][startX + 1],
-                rows[y][startX + 2],
-                alpha
-            );
+            buffVec.push_back(rows[y][startX]);
         }
-        this->m_rows.emplace_back(buffVec);
+        this->m_indexRows.push_back(buffVec);
     }
 }
 
@@ -230,8 +197,8 @@ void PngHandler::writePixels() {
         byteRows[i] = new png_byte[width * 4];
     }
 
-    for (uint32_t y = 0; y < height; ++y) {
-        for (uint32_t x = 0; x < width; ++x) {
+    for (std::uint32_t y = 0; y < height; ++y) {
+        for (std::uint32_t x = 0; x < width; ++x) {
             auto const& pixel = this->m_rows[y][x];
 
             byteRows[y][x * 4 + 0] = pixel.r;

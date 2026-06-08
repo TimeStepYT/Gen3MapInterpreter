@@ -9,7 +9,7 @@
 #include <PngHandler.hpp>
 #include <Palette.hpp>
 
-std::string layoutID;
+std::string g_layoutID;
 int width = 8;
 bool simple = false;
 bool showMetatileInfo = false;
@@ -42,8 +42,6 @@ void readArgument(char** argv, int argc, int i, char const* name, std::filesyste
 }
 
 void parseArguments(int argc, char** argv) {
-    layoutID = argv[1];
-
     for (int i = 2; i < argc; ++i) {
         auto* arg = argv[i];
 
@@ -52,6 +50,10 @@ void parseArguments(int argc, char** argv) {
         readArgument(argv, argc, i, "-metatiles", showMetatileInfo);
         readArgument(argv, argc, i, "-o", global::g_outputPath);
     }
+    std::ostringstream layoutID;
+    layoutID << "LAYOUT_" << argv[1];
+
+    g_layoutID = layoutID.str();
 }
 
 bool findLayoutInfo() {
@@ -64,7 +66,7 @@ bool findLayoutInfo() {
 
     bool found = false;
     for (auto const& layout : layouts) {
-        if (layout["id"] != layoutID)
+        if (layout["id"] != g_layoutID)
             continue;
 
         found = true;
@@ -73,7 +75,7 @@ bool findLayoutInfo() {
     }
 
     if (!found) {
-        std::cout << "Couldn't find anything with the layout ID \"" << layoutID << '\"';
+        std::cout << "Couldn't find anything with the layout ID \"" << g_layoutID << '\"';
         return 0;
     }
     return true;

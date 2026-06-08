@@ -107,6 +107,47 @@ void MapProcessor::printField(std::string const& title, LayoutMetatile LayoutTil
     std::cout << '\n';
 }
 
+void MapProcessor::drawMetatilePart(std::array<Tile, 4> metatilePart, std::uint16_t layoutIndex, std::vector<std::vector<Pixel>>& output) {
+    int metatileX = (layoutIndex % this->m_width) * 16;
+    int metatileY = (layoutIndex / this->m_width) * 16;
+
+    int xOffset = 0;
+    int yOffset = 0;
+
+    for (int metatilePartIndex = 0; metatilePartIndex < metatilePart.size(); ++metatilePartIndex) {
+        auto const& tile = metatilePart.at(metatilePartIndex);
+
+        std::array<std::array<Pixel, 8>, 8> tilePixels;
+
+        if (tile.isSecTileset()) {
+            tilePixels = this->m_secTileset->getTilePixels(tile);
+        }
+        else {
+            tilePixels = this->m_primTileset->getTilePixels(tile);
+        }
+        
+        if (metatilePartIndex >= 2)
+            yOffset = 8;
+
+        if (metatilePartIndex % 2 == 1)
+            xOffset = 8;
+        else
+            xOffset = 0;
+
+        // Put the pixels in the bag
+        int yTile = 0;
+        for (auto const& tileRow : tilePixels) {
+            int xTile = 0;
+            for (auto const& pixel : tileRow) {
+                if (pixel.a != 0)
+                    output.at(metatileY + yTile + yOffset).at(metatileX + xTile + xOffset) = pixel;
+                ++xTile;
+            }
+            ++yTile;
+        }
+    }
+}
+
 void MapProcessor::renderMap(std::filesystem::path const& outputPath) {
     if (!this->m_primTileset.has_value()) {
         std::cerr << "Can't render the map, please use MapProcessor::setTileset() first!";
@@ -157,44 +198,8 @@ void MapProcessor::renderMap(std::filesystem::path const& outputPath) {
         auto const& backgroundTiles = metatile.getBackgroundTiles();
         auto const& foregroundTiles = metatile.getForegroundTiles();
         
-        int metatileX = (layoutIndex % this->m_width) * 16;
-        int metatileY = (layoutIndex / this->m_width) * 16;
-
-        int xOffset = 0;
-        int yOffset = 0;
-
-        // Drawing every metatile part (tile)
-        for (int metatilePartIndex = 0; metatilePartIndex < backgroundTiles.size(); ++metatilePartIndex) {
-            auto const& tile = backgroundTiles.at(metatilePartIndex);
-
-            std::array<std::array<Pixel, 8>, 8> tilePixels;
-
-            if (tile.isSecTileset()) {
-                tilePixels = this->m_secTileset->getTilePixels(tile);
-            }
-            else {
-                tilePixels = this->m_primTileset->getTilePixels(tile);
-            }
-            
-            if (metatilePartIndex >= 2)
-                yOffset = 8;
-        
-            if (metatilePartIndex % 2 == 1)
-                xOffset = 8;
-            else
-                xOffset = 0;
-    
-            // Put the pixels in the bag
-            int yTile = 0;
-            for (auto const& tileRow : tilePixels) {
-                int xTile = 0;
-                for (auto const& pixel : tileRow) {
-                    output.at(metatileY + yTile + yOffset).at(metatileX + xTile + xOffset) = pixel;
-                    ++xTile;
-                }
-                ++yTile;
-            }
-        }
+        this->drawMetatilePart(backgroundTiles, layoutIndex, output);
+        this->drawMetatilePart(foregroundTiles, layoutIndex, output);
     }
 
     PngHandler outputHandler{global::g_outputPath / "output.png"};
