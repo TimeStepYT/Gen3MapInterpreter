@@ -18,7 +18,7 @@ public:
     std::filesystem::path getMetatilesBinPath() const;
     std::filesystem::path getTilesPngPath() const;
     std::filesystem::path getPaletteDir() const;
-    PngHandler getTilesPngWithPalette(Palette const& palette) const;
+    PngHandler getTilesPng() const;
     Palette getPaletteByIndex(int index) const;
     std::array<std::array<Pixel, 8>, 8> getTilePixels(Tile const& tile) const;
     void readMetatiles();
