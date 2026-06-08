@@ -6,10 +6,14 @@
 
 Tileset::Tileset(std::filesystem::path const& path) {
     this->m_rootPath = path;
+    this->m_tilesPng = this->getTilesPngPath();
+    this->m_tilesPng.read();
 }
 
 Tileset::Tileset(std::filesystem::path&& path) {
     this->m_rootPath = std::move(path);
+    this->m_tilesPng = this->getTilesPngPath();
+    this->m_tilesPng.read();
 }
 
 std::filesystem::path const& Tileset::getPath() const {
@@ -32,11 +36,8 @@ std::vector<Metatile> const& Tileset::getMetatiles() const {
     return this->m_metatiles;
 }
 
-PngHandler Tileset::getTilesPng() const {
-    PngHandler tilesPng{this->getTilesPngPath()};
-    tilesPng.read();
-
-    return tilesPng;
+PngHandler const& Tileset::getTilesPng() const {
+    return this->m_tilesPng;
 }
 
 Palette Tileset::getPaletteByIndex(int index) const {
