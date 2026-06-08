@@ -6,14 +6,10 @@
 
 Tileset::Tileset(std::filesystem::path const& path) {
     this->m_rootPath = path;
-    this->m_tilesPng = this->getTilesPngPath();
-    this->m_tilesPng.read();
 }
 
 Tileset::Tileset(std::filesystem::path&& path) {
     this->m_rootPath = std::move(path);
-    this->m_tilesPng = this->getTilesPngPath();
-    this->m_tilesPng.read();
 }
 
 std::filesystem::path const& Tileset::getPath() const {
@@ -36,8 +32,13 @@ std::vector<Metatile> const& Tileset::getMetatiles() const {
     return this->m_metatiles;
 }
 
-PngHandler const& Tileset::getTilesPng() const {
-    return this->m_tilesPng;
+PngHandler const& Tileset::getTilesPng() {
+    if (!this->m_tilesPng) {
+        this->m_tilesPng = std::make_unique<PngHandler>(this->getTilesPngPath());
+        this->m_tilesPng->read();
+    }
+
+    return *this->m_tilesPng;
 }
 
 Palette Tileset::getPaletteByIndex(int index) const {
@@ -53,7 +54,7 @@ Palette Tileset::getPaletteByIndex(int index) const {
     return pal;
 }
 
-std::array<std::array<Pixel, 8>, 8> Tileset::getTilePixels(Tile const& tile) const {
+std::array<std::array<Pixel, 8>, 8> Tileset::getTilePixels(Tile const& tile) {
     auto const& index = tile.getTileID();
 
     Palette palette = this->getPaletteByIndex(tile.getPaletteID());

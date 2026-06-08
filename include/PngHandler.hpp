@@ -27,7 +27,6 @@ class PngHandler {
     void writePixels();
     void writePipeline();
 public:
-    PngHandler() = default;
     PngHandler(std::filesystem::path const& path);
 
     std::vector<std::vector<Pixel>> const& getAllPixels() const;
