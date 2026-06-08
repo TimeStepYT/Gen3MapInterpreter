@@ -12,9 +12,9 @@ class MapProcessor {
     using BytesVector = std::unique_ptr<std::vector<uint16_t>>;
     struct LayoutTile {
         LayoutMetatile metatile {0};
-        uint8_t collision = 0;
-        uint8_t elevation = 0;
-        uint8_t advanceMapFormat = 0;
+        std::uint8_t collision = 0;
+        std::uint8_t elevation = 0;
+        std::uint8_t advanceMapFormat = 0;
     };
     
     int m_width = 0;
@@ -29,9 +29,9 @@ class MapProcessor {
     void printField(std::string const& title, LayoutMetatile LayoutTile::* field);
     // Turns strings like "gTileset_BattlePyramid" into "battle_pyramid"
     std::string getTilesetFolderName(std::string const& tileset);
-    void drawMetatilePart(std::array<Tile, 4> metatilePart, std::uint16_t layoutIndex, std::vector<std::vector<Pixel>>& output) const;
-    void renderMetatiles() const;
-    void renderActualMap() const;
+    void drawMetatilePart(std::array<Tile, 4> metatilePart, std::uint16_t layoutIndex, std::vector<std::vector<Pixel>>& output);
+    void renderMetatiles();
+    void renderActualMap();
 public:
     void renderMap(std::filesystem::path const& outputPath);
     void setTilesets(std::string const& primary, std::string const& secondary);

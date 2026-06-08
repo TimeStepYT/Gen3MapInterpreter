@@ -107,7 +107,7 @@ void MapProcessor::printField(std::string const& title, LayoutMetatile LayoutTil
     std::cout << '\n';
 }
 
-void MapProcessor::drawMetatilePart(std::array<Tile, 4> metatilePart, std::uint16_t layoutIndex, std::vector<std::vector<Pixel>>& output) const {
+void MapProcessor::drawMetatilePart(std::array<Tile, 4> metatilePart, std::uint16_t layoutIndex, std::vector<std::vector<Pixel>>& output) {
     int metatileX = (layoutIndex % this->m_width) * 16;
     int metatileY = (layoutIndex / this->m_width) * 16;
 
@@ -148,7 +148,7 @@ void MapProcessor::drawMetatilePart(std::array<Tile, 4> metatilePart, std::uint1
     }
 }
 
-void MapProcessor::renderActualMap() const {
+void MapProcessor::renderActualMap() {
     auto const& primMetatiles = this->m_primTileset->getMetatiles();
     auto const& secMetatiles = this->m_secTileset->getMetatiles();
 
@@ -266,7 +266,7 @@ void MapProcessor::printData() {
     std::cout << std::endl;
 }
 
-void MapProcessor::renderMetatiles() const {
+void MapProcessor::renderMetatiles() {
     auto const& primMetatiles = this->m_primTileset->getMetatiles();
     auto const& secMetatiles = this->m_secTileset->getMetatiles();
 
