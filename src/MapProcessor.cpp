@@ -1,6 +1,5 @@
 #include <iostream>
 #include <cmath>
-#include <chrono>
 
 #include <Metatile.hpp>
 #include <LayoutMetatile.hpp>
