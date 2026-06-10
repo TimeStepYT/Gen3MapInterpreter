@@ -8,7 +8,8 @@ class Palette {
     std::vector<Pixel> m_colors;
 
 public:
-    static Palette fromFile(std::filesystem::path filePath);
+    Palette() = default;
+    Palette(std::filesystem::path filePath);
     
     void setColors(std::vector<Pixel> const& colors);
     void setColor(int index, Pixel const& color);

@@ -91,13 +91,14 @@ void handleBlockDataFileContent(FileHandler const& fileHandler) {
 
     mapProcessor.processBytes(bytes, width);
     mapProcessor.printData();
-    
+
     mapProcessor.renderMap(global::g_outputPath);
 }
 
 int main(int argc, char** argv) {
+#ifdef _WIN32
     std::locale::global(std::locale("en_US.UTF-8"));
-
+#endif
     if (argc < 2) {
         std::puts("Syntax: Gen3MapInterpreter.exe <layout ID> [OPTIONS]");
         std::puts("    -simple            Only shows the collision data");

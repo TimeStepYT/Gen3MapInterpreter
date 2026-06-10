@@ -41,7 +41,12 @@ PngHandler const& Tileset::getTilesPng() {
     return *this->m_tilesPng;
 }
 
-Palette Tileset::getPaletteByIndex(int index) const {
+Palette const& Tileset::getPaletteByIndex(int index) {
+    auto& cachedPalette = this->m_palettes.at(index);
+    if (cachedPalette != nullptr) {
+        return *cachedPalette;
+    }
+
     std::ostringstream fileName;
 
     if (index < 10)
@@ -49,9 +54,10 @@ Palette Tileset::getPaletteByIndex(int index) const {
 
     fileName << index << ".pal";
 
-    Palette pal = Palette::fromFile(this->getPaletteDir() / fileName.str());
+    auto pal = std::make_unique<Palette>(this->getPaletteDir() / fileName.str());
+    cachedPalette = std::move(pal);
 
-    return pal;
+    return *cachedPalette;
 }
 
 std::array<std::array<Pixel, 8>, 8> Tileset::getTilePixels(Tile const& tile) {
