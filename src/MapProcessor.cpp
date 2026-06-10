@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 
 #include <Metatile.hpp>
 #include <LayoutMetatile.hpp>
@@ -158,7 +159,7 @@ void MapProcessor::renderActualMap() {
     }
 
     int const outputWidth = this->m_width * 16;
-    int const outputHeight = ceil(static_cast<float>(this->m_layoutTiles.size()) / this->m_width) * 16;
+    int const outputHeight = std::ceil(static_cast<float>(this->m_layoutTiles.size()) / this->m_width) * 16;
 
     // Prefill the vector for easier access
     std::vector<std::vector<Pixel>> output;
@@ -279,7 +280,7 @@ void MapProcessor::renderMetatiles() {
 
     int const width = 5;
 
-    int const outputHeight = ceil(static_cast<float>(amountMetatiles) / width) * 16;
+    int const outputHeight = std::ceil(static_cast<float>(amountMetatiles) / width) * 16;
     int const outputWidth = 16 * width;
 
     // Prefill the vector for easier access

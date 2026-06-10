@@ -90,7 +90,8 @@ void handleBlockDataFileContent(FileHandler const& fileHandler) {
     auto bytes = fileHandler.getU16Vector();
 
     mapProcessor.processBytes(bytes, width);
-    // mapProcessor.printData();
+    mapProcessor.printData();
+    
     mapProcessor.renderMap(global::g_outputPath);
 }
 
