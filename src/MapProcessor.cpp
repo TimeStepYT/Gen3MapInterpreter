@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cmath>
+#include <chrono>
 
 #include <Metatile.hpp>
 #include <LayoutMetatile.hpp>
@@ -175,21 +176,21 @@ void MapProcessor::renderActualMap() {
         }
         output.push_back(bufferVec);
     }
-    
+
     // Go through the map layout
     for (size_t layoutIndex = 0; layoutIndex < this->m_layoutTiles.size(); ++layoutIndex) {
         auto const& layoutMetatile = this->m_layoutTiles.at(layoutIndex).metatile;
 
-        Metatile metatile;
+        std::unique_ptr<Metatile> metatile;
 
         if (layoutMetatile.isSecondTileset())
-            metatile = secMetatiles.at(layoutMetatile.getTileID());
+            metatile = std::make_unique<Metatile>(secMetatiles.at(layoutMetatile.getTileID()));
         else
-            metatile = primMetatiles.at(layoutMetatile.getTileID());
-
-        auto const& backgroundTiles = metatile.getBackgroundTiles();
-        auto const& foregroundTiles = metatile.getForegroundTiles();
+            metatile = std::make_unique<Metatile>(primMetatiles.at(layoutMetatile.getTileID()));
         
+        auto const& backgroundTiles = metatile->getBackgroundTiles();
+        auto const& foregroundTiles = metatile->getForegroundTiles();
+
         this->drawMetatilePart(backgroundTiles, layoutIndex, output);
         this->drawMetatilePart(foregroundTiles, layoutIndex, output);
     }
@@ -204,11 +205,12 @@ void MapProcessor::renderMap(std::filesystem::path const& outputPath) {
         std::cerr << "Can't render the map, please use MapProcessor::setTileset() first!";
         return;
     }
+
     this->m_primTileset->readMetatiles();
     this->m_secTileset->readMetatiles();
-
+    
     // this->renderMetatiles();
-
+    
     this->renderActualMap();
 }
 

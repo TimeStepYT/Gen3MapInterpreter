@@ -5,9 +5,7 @@
 
 #include <Palette.hpp>
 
-Palette Palette::fromFile(std::filesystem::path filePath) {
-    Palette res;
-
+Palette::Palette(std::filesystem::path filePath) {
     std::ifstream file(filePath);
 
     std::string line;
@@ -23,7 +21,7 @@ Palette Palette::fromFile(std::filesystem::path filePath) {
             continue;
 
         if (lineNumber == 2) {
-            res.m_colors.reserve(std::stoi(line));
+            this->m_colors.reserve(std::stoi(line));
             continue;
         }
 
@@ -43,10 +41,8 @@ Palette Palette::fromFile(std::filesystem::path filePath) {
             ++i;
         }
 
-        res.m_colors.emplace_back(valueBuffer[0], valueBuffer[1], valueBuffer[2]);
+        this->m_colors.emplace_back(valueBuffer[0], valueBuffer[1], valueBuffer[2]);
     }
-
-    return res;
 }
 
 void Palette::setColors(std::vector<Pixel> const& colors) {
