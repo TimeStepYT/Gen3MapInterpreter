@@ -49,6 +49,8 @@ void parseArguments(int argc, char** argv) {
         readArgument(argv, argc, i, "-simple", simple);
         readArgument(argv, argc, i, "-metatiles", showMetatileInfo);
         readArgument(argv, argc, i, "-o", global::g_outputPath);
+        readArgument(argv, argc, i, "-nopng", global::g_noPng);
+        readArgument(argv, argc, i, "-noinfo", global::g_noInfo);
     }
     std::ostringstream layoutID;
     layoutID << "LAYOUT_" << argv[1];
@@ -90,9 +92,12 @@ void handleBlockDataFileContent(FileHandler const& fileHandler) {
     auto bytes = fileHandler.getU16Vector();
 
     mapProcessor.processBytes(bytes, width);
-    mapProcessor.printData();
+    
+    if (!global::g_noInfo)
+        mapProcessor.printData();
 
-    mapProcessor.renderMap(global::g_outputPath);
+    if (!global::g_noPng)
+        mapProcessor.renderMap(global::g_outputPath);
 }
 
 int main(int argc, char** argv) {
@@ -103,6 +108,8 @@ int main(int argc, char** argv) {
         std::puts("Syntax: Gen3MapInterpreter.exe <layout ID> [OPTIONS]");
         std::puts("    -simple            Only shows the collision data");
         std::puts("    -metatiles         Only show metatile info");
+        std::puts("    -nopng             Doesn't create a PNG of the map");
+        std::puts("    -noinfo            Doesn't log the layout data");
         std::puts("    -root <directory>  Set the root directory for the Pokémon Emerald decomp");
         std::puts("    -o <directory>     Set the output directory for the exported PNG");
 
@@ -110,6 +117,11 @@ int main(int argc, char** argv) {
     }
     
     parseArguments(argc, argv);
+
+    if (global::g_noInfo && global::g_noPng) {
+        std::puts("Literally not doing anything but wasting your time :D");
+        // Not returning out of spite.
+    }
 
     if (!findLayoutInfo())
         return 0;
