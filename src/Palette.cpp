@@ -11,37 +11,35 @@ Palette::Palette(std::filesystem::path filePath) {
     std::string line;
 
     int lineNumber = -1;
+    int paletteSize = 0;
+    int colorIndex = 0;
 
     std::array<int, 3> valueBuffer;
 
-    while(std::getline(file, line)) {
+    while((paletteSize == 0 || colorIndex < paletteSize) && std::getline(file, line)) {
         ++lineNumber;
 
         if (lineNumber < 2)
             continue;
 
         if (lineNumber == 2) {
-            this->m_colors.reserve(std::stoi(line));
+            paletteSize = std::stoi(line);
+            this->m_colors.reserve(paletteSize);
             continue;
         }
-
-        // if (lineNumber == 3) {
-        //     res.m_colors.emplace_back(0xde, 0xad, 0xbe, 0xef);
-        //     continue;
-        // }
         
         std::istringstream values(line);
 
         std::string valueString;
         
-        int i = 0;
-        while (std::getline(values, valueString, ' ')) {
+        for (int i = 0; i < 3; ++i) {
+            std::getline(values, valueString, ' ');
             int value = std::stoi(valueString);
             valueBuffer[i] = value;
-            ++i;
         }
 
         this->m_colors.emplace_back(valueBuffer[0], valueBuffer[1], valueBuffer[2]);
+        ++colorIndex;
     }
 }
 
