@@ -60,10 +60,9 @@ Palette const& Tileset::getPaletteByIndex(int index) {
     return *cachedPalette;
 }
 
-std::array<std::array<Pixel, 8>, 8> Tileset::getTilePixels(Tile const& tile) {
+std::array<std::array<Pixel, 8>, 8> Tileset::getTilePixels(Tile const& tile, Palette& palette) {
     auto const& index = tile.getTileID();
 
-    Palette palette = this->getPaletteByIndex(tile.getPaletteID());
     PngHandler const& tiles = this->getTilesPng();
 
     std::array<std::array<Pixel, 8>, 8> res;
