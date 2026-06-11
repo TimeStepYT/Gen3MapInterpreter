@@ -108,7 +108,7 @@ void MapProcessor::printField(std::string const& title, LayoutMetatile LayoutTil
     std::cout << '\n';
 }
 
-void MapProcessor::drawMetatilePart(std::array<Tile, 4> metatilePart, std::uint16_t layoutIndex, std::vector<std::vector<Pixel>>& output) {
+void MapProcessor::drawMetatilePart(std::array<Tile, 4> metatilePart, std::uint16_t layoutIndex, std::vector<std::vector<Pixel>>& output, bool isSecondTileset) {
     int metatileX = (layoutIndex % this->m_width) * 16;
     int metatileY = (layoutIndex / this->m_width) * 16;
 
@@ -120,11 +120,20 @@ void MapProcessor::drawMetatilePart(std::array<Tile, 4> metatilePart, std::uint1
 
         std::array<std::array<Pixel, 8>, 8> tilePixels;
 
-        if (tile.isSecTileset()) {
-            tilePixels = this->m_secTileset->getTilePixels(tile);
+        Palette palette;
+
+        if (isSecondTileset) {
+            palette = this->m_secTileset->getPaletteByIndex(tile.getPaletteID());
         }
         else {
-            tilePixels = this->m_primTileset->getTilePixels(tile);
+            palette = this->m_primTileset->getPaletteByIndex(tile.getPaletteID());
+        }
+
+        if (tile.isSecTileset()) {
+            tilePixels = this->m_secTileset->getTilePixels(tile, palette);
+        }
+        else {
+            tilePixels = this->m_primTileset->getTilePixels(tile, palette);
         }
         
         if (metatilePartIndex >= 2)
@@ -181,8 +190,9 @@ void MapProcessor::renderActualMap() {
         auto const& layoutMetatile = this->m_layoutTiles.at(layoutIndex).metatile;
 
         std::unique_ptr<Metatile> metatile;
+        bool const isSecondTileset = layoutMetatile.isSecondTileset();
 
-        if (layoutMetatile.isSecondTileset())
+        if (isSecondTileset)
             metatile = std::make_unique<Metatile>(secMetatiles.at(layoutMetatile.getTileID()));
         else
             metatile = std::make_unique<Metatile>(primMetatiles.at(layoutMetatile.getTileID()));
@@ -190,8 +200,8 @@ void MapProcessor::renderActualMap() {
         auto const& backgroundTiles = metatile->getBackgroundTiles();
         auto const& foregroundTiles = metatile->getForegroundTiles();
 
-        this->drawMetatilePart(backgroundTiles, layoutIndex, output);
-        this->drawMetatilePart(foregroundTiles, layoutIndex, output);
+        this->drawMetatilePart(backgroundTiles, layoutIndex, output, isSecondTileset);
+        this->drawMetatilePart(foregroundTiles, layoutIndex, output, isSecondTileset);
     }
 
     PngHandler outputHandler{global::g_outputPath / "output.png"};
@@ -317,11 +327,13 @@ void MapProcessor::renderMetatiles() {
 
             std::array<std::array<Pixel, 8>, 8> tilePixels;
 
+            Palette palette = this->m_secTileset->getPaletteByIndex(tile.getPaletteID());
+
             if (tile.isSecTileset()) {
-                tilePixels = this->m_secTileset->getTilePixels(tile);
+                tilePixels = this->m_secTileset->getTilePixels(tile, palette);
             }
             else {
-                tilePixels = this->m_primTileset->getTilePixels(tile);
+                tilePixels = this->m_primTileset->getTilePixels(tile, palette);
             }
             
             if (metatilePartIndex >= 2)

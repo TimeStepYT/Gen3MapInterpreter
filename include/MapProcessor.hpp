@@ -29,7 +29,7 @@ class MapProcessor {
     void printField(std::string const& title, LayoutMetatile LayoutTile::* field);
     // Turns strings like "gTileset_BattlePyramid" into "battle_pyramid"
     std::string getTilesetFolderName(std::string const& tileset);
-    void drawMetatilePart(std::array<Tile, 4> metatilePart, std::uint16_t layoutIndex, std::vector<std::vector<Pixel>>& output);
+    void drawMetatilePart(std::array<Tile, 4> metatilePart, std::uint16_t layoutIndex, std::vector<std::vector<Pixel>>& output, bool isSecondTileset);
     void renderMetatiles();
     void renderActualMap();
 public:
