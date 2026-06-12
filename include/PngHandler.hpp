@@ -28,6 +28,7 @@ class PngHandler {
     void writePipeline();
 public:
     PngHandler(std::filesystem::path const& path);
+    PngHandler(std::filesystem::path&& path);
 
     std::vector<std::vector<Pixel>> const& getAllPixels() const;
     std::uint8_t const& getPixelIndex(unsigned int x, unsigned int y) const;

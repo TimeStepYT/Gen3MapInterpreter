@@ -26,6 +26,10 @@ void MapProcessor::processBytes(BytesVector const& bytes, int width) {
     }
 }
 
+void MapProcessor::setName(std::string const& name) {
+    this->m_mapName = name;
+}
+
 void MapProcessor::simpleMode(bool simpleMode) {
     this->m_simple = simpleMode;
 }
@@ -158,7 +162,7 @@ void MapProcessor::drawMetatilePart(std::array<Tile, 4> metatilePart, std::uint1
     }
 }
 
-void MapProcessor::renderActualMap() {
+void MapProcessor::renderActualMap(std::filesystem::path const& outputPath) {
     auto const& primMetatiles = this->m_primTileset->getMetatiles();
     auto const& secMetatiles = this->m_secTileset->getMetatiles();
 
@@ -204,9 +208,14 @@ void MapProcessor::renderActualMap() {
         this->drawMetatilePart(foregroundTiles, layoutIndex, output, isSecondTileset);
     }
 
-    PngHandler outputHandler{global::g_outputPath / "output.png"};
+    std::ostringstream fileNameStream;
+    fileNameStream << this->m_mapName << ".png";
+    
+    auto const& fileName = fileNameStream.str();
+
+    PngHandler outputHandler{outputPath / fileName};
     outputHandler.write(output);
-    std::puts("Exported Map");
+    std::cout << "Exported " << fileName << std::endl;
 }
 
 void MapProcessor::renderMap(std::filesystem::path const& outputPath) {
@@ -220,7 +229,7 @@ void MapProcessor::renderMap(std::filesystem::path const& outputPath) {
     
     // this->renderMetatiles();
     
-    this->renderActualMap();
+    this->renderActualMap(outputPath);
 }
 
 std::string MapProcessor::getTilesetFolderName(std::string const& tileset) {
@@ -278,7 +287,7 @@ void MapProcessor::printData() {
     std::cout << std::endl;
 }
 
-void MapProcessor::renderMetatiles() {
+void MapProcessor::renderMetatiles(std::filesystem::path const& outputPath) {
     auto const& primMetatiles = this->m_primTileset->getMetatiles();
     auto const& secMetatiles = this->m_secTileset->getMetatiles();
 
@@ -357,7 +366,7 @@ void MapProcessor::renderMetatiles() {
         }
     }
 
-    PngHandler outputHandler{global::g_outputPath / "output.png"};
+    PngHandler outputHandler{outputPath / "output.png"};
     outputHandler.write(output);
     std::puts("Exported Metatileset");
 }
