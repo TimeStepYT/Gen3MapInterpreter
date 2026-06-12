@@ -23,7 +23,7 @@ public:
     std::filesystem::path getPaletteDir() const;
     PngHandler const& getTilesPng();
     Palette const& getPaletteByIndex(int index);
-    std::array<std::array<Pixel, 8>, 8> getTilePixels(Tile const& tile, Palette& palette);
+    std::array<std::array<std::unique_ptr<Pixel>, 8>, 8> getTilePixels(Tile const& tile, Palette& palette);
     void readMetatiles();
     std::vector<Metatile> const& getMetatiles() const;
 };
