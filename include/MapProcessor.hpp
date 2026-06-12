@@ -22,8 +22,8 @@ class MapProcessor {
     std::vector<LayoutTile> m_layoutTiles;
     bool m_showMetatileInfo = false;
     bool m_simple = false;
-    std::optional<Tileset> m_primTileset;
-    std::optional<Tileset> m_secTileset;
+    std::unique_ptr<Tileset> m_primTileset;
+    std::unique_ptr<Tileset> m_secTileset;
     std::string m_mapName = "Map";
     
     template <typename T>

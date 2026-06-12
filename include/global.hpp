@@ -7,4 +7,5 @@ namespace global {
     inline std::filesystem::path g_outputPath{};
     inline bool g_noPng = false;
     inline bool g_noInfo = false;
+    inline bool g_renderAll = false;
 }

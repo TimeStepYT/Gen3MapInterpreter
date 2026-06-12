@@ -6,10 +6,17 @@
 
 Tileset::Tileset(std::filesystem::path const& path) {
     this->m_rootPath = path;
+    this->init();
 }
 
 Tileset::Tileset(std::filesystem::path&& path) {
     this->m_rootPath = std::move(path);
+    this->init();
+}
+
+void Tileset::init() {
+    this->m_tilesPngPath = this->m_rootPath / "tiles.png";
+    this->m_palettePath = this->m_rootPath / "palettes";
 }
 
 std::filesystem::path const& Tileset::getPath() const {
@@ -20,12 +27,20 @@ std::filesystem::path Tileset::getMetatilesBinPath() const {
     return this->m_rootPath / "metatiles.bin";
 }
 
+void Tileset::setTilesPngPath(std::filesystem::path const& path) {
+    this->m_tilesPngPath = path;
+}
+
 std::filesystem::path Tileset::getTilesPngPath() const {
-    return this->m_rootPath / "tiles.png";
+    return this->m_tilesPngPath;
+}
+
+void Tileset::setPaletteDir(std::filesystem::path const& path) {
+    this->m_palettePath = path;
 }
 
 std::filesystem::path Tileset::getPaletteDir() const {
-    return this->m_rootPath / "palettes";
+    return this->m_palettePath;
 }
 
 std::vector<Metatile> const& Tileset::getMetatiles() const {
@@ -114,9 +129,19 @@ std::array<std::array<std::unique_ptr<Pixel>, 8>, 8> Tileset::getTilePixels(Tile
     return res;
 }
 
+bool Tileset::isBroken() const {
+    return this->m_broken;
+}
+
 void Tileset::readMetatiles() {
     FileHandler metatilesFile;
-    metatilesFile.readBinaryFile(this->getMetatilesBinPath());
+    bool readingSuccess = metatilesFile.readBinaryFile(this->getMetatilesBinPath());
+    
+    if (!readingSuccess) {
+        this->m_broken = true;
+        return;
+    }
+
     auto bytes = metatilesFile.getU16Vector();
 
     std::array<std::uint16_t, 8> buffer;
