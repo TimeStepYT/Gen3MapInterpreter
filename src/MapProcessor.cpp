@@ -122,15 +122,16 @@ void MapProcessor::drawMetatilePart(std::array<Tile, 4> metatilePart, std::uint1
     for (int metatilePartIndex = 0; metatilePartIndex < metatilePart.size(); ++metatilePartIndex) {
         auto const& tile = metatilePart.at(metatilePartIndex);
 
-        std::array<std::array<Pixel, 8>, 8> tilePixels;
+        std::array<std::array<std::unique_ptr<Pixel>, 8>, 8> tilePixels;
 
+        int paletteID = tile.getPaletteID();
         Palette palette;
 
-        if (isSecondTileset) {
-            palette = this->m_secTileset->getPaletteByIndex(tile.getPaletteID());
+        if (paletteID > 5) {
+            palette = this->m_secTileset->getPaletteByIndex(paletteID);
         }
         else {
-            palette = this->m_primTileset->getPaletteByIndex(tile.getPaletteID());
+            palette = this->m_primTileset->getPaletteByIndex(paletteID);
         }
 
         if (tile.isSecTileset()) {
@@ -153,8 +154,8 @@ void MapProcessor::drawMetatilePart(std::array<Tile, 4> metatilePart, std::uint1
         for (auto const& tileRow : tilePixels) {
             int xTile = 0;
             for (auto const& pixel : tileRow) {
-                if (pixel.a != 0)
-                    output.at(metatileY + yTile + yOffset).at(metatileX + xTile + xOffset) = pixel;
+                if (pixel->a != 0)
+                    output.at(metatileY + yTile + yOffset).at(metatileX + xTile + xOffset) = *pixel;
                 ++xTile;
             }
             ++yTile;
@@ -334,7 +335,7 @@ void MapProcessor::renderMetatiles(std::filesystem::path const& outputPath) {
         for (int metatilePartIndex = 0; metatilePartIndex < backgroundTiles.size(); ++metatilePartIndex) {
             auto const& tile = backgroundTiles.at(metatilePartIndex);
 
-            std::array<std::array<Pixel, 8>, 8> tilePixels;
+            std::array<std::array<std::unique_ptr<Pixel>, 8>, 8> tilePixels;
 
             Palette palette = this->m_secTileset->getPaletteByIndex(tile.getPaletteID());
 
@@ -358,7 +359,7 @@ void MapProcessor::renderMetatiles(std::filesystem::path const& outputPath) {
             for (auto const& tileRow : tilePixels) {
                 int xTile = 0;
                 for (auto const& pixel : tileRow) {
-                    output.at(metatileY + yTile + yOffset).at(metatileX + xTile + xOffset) = pixel;
+                    output.at(metatileY + yTile + yOffset).at(metatileX + xTile + xOffset) = *pixel;
                     ++xTile;
                 }
                 ++yTile;

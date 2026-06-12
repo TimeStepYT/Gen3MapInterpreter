@@ -60,19 +60,19 @@ Palette const& Tileset::getPaletteByIndex(int index) {
     return *cachedPalette;
 }
 
-std::array<std::array<Pixel, 8>, 8> Tileset::getTilePixels(Tile const& tile, Palette& palette) {
+std::array<std::array<std::unique_ptr<Pixel>, 8>, 8> Tileset::getTilePixels(Tile const& tile, Palette& palette) {
     auto const& index = tile.getTileID();
 
     PngHandler const& tiles = this->getTilesPng();
 
-    std::array<std::array<Pixel, 8>, 8> res;
+    std::array<std::array<std::unique_ptr<Pixel>, 8>, 8> res;
     
     size_t tilesAmount = (tiles.getWidth() / 8) * (tiles.getHeight() / 8);
     
     if (index >= tilesAmount) {
         for (int i = 0; i < 8; ++i) {
             for (int j = 0; j < 8; ++j) {
-                res.at(i).at(j) = Pixel{0, 0, 0, 0};
+                res.at(i).at(j) = std::make_unique<Pixel>(0, 0, 0, 0);
             }
         }
 
@@ -95,19 +95,19 @@ std::array<std::array<Pixel, 8>, 8> Tileset::getTilePixels(Tile const& tile, Pal
             std::uint8_t pixelIndex = tiles.getPixelIndex(pixelX, pixelY);
 
             if (pixelIndex == 0) { // transparent index
-                res.at(yRes).at(xRes) = Pixel{0, 0, 0, 0};
+                res.at(yRes).at(xRes) = std::make_unique<Pixel>(0, 0, 0, 0);
                 continue;
             }
             
             if (pixelIndex >= palette.getColors().size()) {
                 std::cout << "Pixel index " << pixelIndex << " out of bounds" << std::endl;
-                res.at(yRes).at(xRes) = Pixel{0, 0, 0, 0};
+                res.at(yRes).at(xRes) = std::make_unique<Pixel>(0, 0, 0, 0);
                 continue;
             }
 
-            auto pixel = palette.getColors().at(pixelIndex);
+            auto const& pixel = palette.getColors().at(pixelIndex);
         
-            res.at(yRes).at(xRes) = pixel;
+            res.at(yRes).at(xRes) = std::make_unique<Pixel>(pixel);
         }
     }
 
