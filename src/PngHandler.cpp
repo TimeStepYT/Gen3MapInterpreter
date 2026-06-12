@@ -19,6 +19,10 @@ PngHandler::PngHandler(std::filesystem::path const& path) {
     this->m_path = path;
 }
 
+PngHandler::PngHandler(std::filesystem::path&& path) {
+    this->m_path = std::move(path);
+}
+
 std::uint32_t PngHandler::getWidth() const {
     return this->m_width;
 }

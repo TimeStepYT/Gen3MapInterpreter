@@ -36,8 +36,13 @@ void readArgument(char** argv, int argc, int i, char const* name, std::filesyste
     if (strcmp(argv[i], name) != 0) 
         return;
 
+    std::string pathString = argv[i+1];
+
+    pathString.erase(std::remove(pathString.begin(), pathString.end(), '\"'), pathString.end());
+    pathString.erase(std::remove(pathString.begin(), pathString.end(), '\''), pathString.end());
+
     if (i + 1 != argc) {
-        var = argv[i+1];
+        var = pathString;
     }
 }
 
@@ -88,6 +93,11 @@ void handleBlockDataFileContent(FileHandler const& fileHandler) {
     mapProcessor.setTilesets(layoutInfo["primary_tileset"], layoutInfo["secondary_tileset"]);
     mapProcessor.showMetatileInfo(showMetatileInfo);
     mapProcessor.simpleMode(simple);
+
+    std::string nameRaw = layoutInfo["name"];
+    auto name = nameRaw.substr(0, nameRaw.size() - 7);
+
+    mapProcessor.setName(name);
 
     auto bytes = fileHandler.getU16Vector();
 

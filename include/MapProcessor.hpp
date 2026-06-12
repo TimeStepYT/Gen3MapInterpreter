@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <filesystem>
+#include <optional>
 
 #include <LayoutMetatile.hpp>
 #include <Tileset.hpp>
@@ -23,6 +24,7 @@ class MapProcessor {
     bool m_simple = false;
     std::optional<Tileset> m_primTileset;
     std::optional<Tileset> m_secTileset;
+    std::string m_mapName = "Map";
     
     template <typename T>
     void printField(std::string const& title, T LayoutTile::* field);
@@ -30,9 +32,10 @@ class MapProcessor {
     // Turns strings like "gTileset_BattlePyramid" into "battle_pyramid"
     std::string getTilesetFolderName(std::string const& tileset);
     void drawMetatilePart(std::array<Tile, 4> metatilePart, std::uint16_t layoutIndex, std::vector<std::vector<Pixel>>& output, bool isSecondTileset);
-    void renderMetatiles();
-    void renderActualMap();
+    void renderMetatiles(std::filesystem::path const& outputPath);
+    void renderActualMap(std::filesystem::path const& outputPath);
 public:
+    void setName(std::string const& name);
     void renderMap(std::filesystem::path const& outputPath);
     void setTilesets(std::string const& primary, std::string const& secondary);
     void showMetatileInfo(bool show);
