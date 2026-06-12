@@ -161,6 +161,8 @@ int main(int argc, char** argv) {
     }
 
     if (global::g_renderAll) {
+        global::g_noInfo = true;
+        global::g_noPng = false;
         renderEverything();
         return 0;
     }
