@@ -56,6 +56,7 @@ void parseArguments(int argc, char** argv) {
         readArgument(argv, argc, i, "-o", global::g_outputPath);
         readArgument(argv, argc, i, "-nopng", global::g_noPng);
         readArgument(argv, argc, i, "-noinfo", global::g_noInfo);
+        readArgument(argv, argc, i, "-renderAll", global::g_renderAll);
     }
     std::ostringstream layoutID;
     layoutID << "LAYOUT_" << argv[1];
@@ -110,6 +111,31 @@ void handleBlockDataFileContent(FileHandler const& fileHandler) {
         mapProcessor.renderMap(global::g_outputPath);
 }
 
+void handleLayoutInfo() {
+    width = layoutInfo["width"];
+
+    FileHandler fileHandler;
+    bool successReading = fileHandler.readBinaryFile(global::g_rootPath / layoutInfo["blockdata_filepath"]);
+    if (!successReading)
+        return;
+    
+    handleBlockDataFileContent(fileHandler);
+}
+
+void renderEverything() {
+    FileHandler jsonFileHandler;
+    jsonFileHandler.setReadErrorMessage("Please provide the root directory with -root");
+    jsonFileHandler.readJsonFile(global::g_rootPath / "data/layouts/layouts.json");
+
+    auto const& json = jsonFileHandler.getJsonContent();
+    auto layouts = json["layouts"];
+
+    for (auto const& layout : layouts) {
+        layoutInfo = layout;
+        handleLayoutInfo();
+    }
+}
+
 int main(int argc, char** argv) {
 #ifdef _WIN32
     std::locale::global(std::locale("en_US.UTF-8"));
@@ -122,6 +148,7 @@ int main(int argc, char** argv) {
         std::puts("    -noinfo            Doesn't log the layout data");
         std::puts("    -root <directory>  Set the root directory for the Pokémon Emerald decomp");
         std::puts("    -o <directory>     Set the output directory for the exported PNG");
+        std::puts("    -renderAll         Render every single map in the game");
 
         return 0;
     }
@@ -133,17 +160,15 @@ int main(int argc, char** argv) {
         // Not returning out of spite.
     }
 
+    if (global::g_renderAll) {
+        renderEverything();
+        return 0;
+    }
+
     if (!findLayoutInfo())
         return 0;
 
-    width = layoutInfo["width"];
-
-    FileHandler fileHandler;
-    bool successReading = fileHandler.readBinaryFile(global::g_rootPath / layoutInfo["blockdata_filepath"]);
-    if (!successReading)
-        return 0;
-    
-    handleBlockDataFileContent(fileHandler);
+    handleLayoutInfo();
 
     // if (!simple)
     //     getchar();

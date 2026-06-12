@@ -14,11 +14,19 @@ class Tileset {
     std::vector<Metatile> m_metatiles;
     std::unique_ptr<PngHandler> m_tilesPng = nullptr;
     std::array<std::unique_ptr<Palette>, 16> m_palettes;
+    std::filesystem::path m_tilesPngPath;
+    std::filesystem::path m_palettePath;
+    bool m_broken = false;
+
+    void init();
 public:
     Tileset(std::filesystem::path const&);
     Tileset(std::filesystem::path&&);
     std::filesystem::path const& getPath() const;
     std::filesystem::path getMetatilesBinPath() const;
+    void setTilesPngPath(std::filesystem::path const& path);
+    void setPaletteDir(std::filesystem::path const& path);
+    bool isBroken() const;
     std::filesystem::path getTilesPngPath() const;
     std::filesystem::path getPaletteDir() const;
     PngHandler const& getTilesPng();

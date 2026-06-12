@@ -193,15 +193,15 @@ void MapProcessor::renderActualMap(std::filesystem::path const& outputPath) {
     // Go through the map layout
     for (size_t layoutIndex = 0; layoutIndex < this->m_layoutTiles.size(); ++layoutIndex) {
         auto const& layoutMetatile = this->m_layoutTiles.at(layoutIndex).metatile;
-
+        
         std::unique_ptr<Metatile> metatile;
         bool const isSecondTileset = layoutMetatile.isSecondTileset();
-
-        if (isSecondTileset)
+        
+        if (isSecondTileset && this->m_secTileset)
             metatile = std::make_unique<Metatile>(secMetatiles.at(layoutMetatile.getTileID()));
         else
             metatile = std::make_unique<Metatile>(primMetatiles.at(layoutMetatile.getTileID()));
-        
+
         auto const& backgroundTiles = metatile->getBackgroundTiles();
         auto const& foregroundTiles = metatile->getForegroundTiles();
 
@@ -220,13 +220,20 @@ void MapProcessor::renderActualMap(std::filesystem::path const& outputPath) {
 }
 
 void MapProcessor::renderMap(std::filesystem::path const& outputPath) {
-    if (!this->m_primTileset.has_value()) {
+    if (!this->m_primTileset) {
         std::cerr << "Can't render the map, please use MapProcessor::setTileset() first!";
         return;
     }
 
+    if (this->m_secTileset)
+        this->m_secTileset->readMetatiles();
+
     this->m_primTileset->readMetatiles();
-    this->m_secTileset->readMetatiles();
+
+    if (this->m_primTileset->isBroken() || (this->m_secTileset && this->m_secTileset->isBroken())) {
+        std::cout << "Skipping " << this->m_mapName << std::endl;
+        return;
+    }
     
     // this->renderMetatiles();
     
@@ -266,8 +273,9 @@ std::string MapProcessor::getTilesetFolderName(std::string const& tileset) {
 void MapProcessor::setTilesets(std::string const& primary, std::string const& secondary) {
     std::filesystem::path const tilesetsPath = global::g_rootPath / "data/tilesets";
 
-    this->m_primTileset = Tileset{tilesetsPath / "primary" / this->getTilesetFolderName(primary)};
-    this->m_secTileset = Tileset{tilesetsPath / "secondary" / this->getTilesetFolderName(secondary)};
+    this->m_primTileset = std::make_unique<Tileset>(tilesetsPath / "primary" / this->getTilesetFolderName(primary));
+    if (secondary != "0")
+        this->m_secTileset = std::make_unique<Tileset>(tilesetsPath / "secondary" / this->getTilesetFolderName(secondary));
 }
 
 void MapProcessor::printData() {
