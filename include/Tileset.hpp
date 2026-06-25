@@ -16,6 +16,7 @@ class Tileset {
     std::array<std::unique_ptr<Palette>, 16> m_palettes;
     std::filesystem::path m_tilesPngPath;
     std::filesystem::path m_palettePath;
+    size_t m_primaryTilesetSize = 0;
     bool m_broken = false;
 
     void init();
@@ -34,4 +35,5 @@ public:
     std::array<std::array<std::unique_ptr<Pixel>, 8>, 8> getTilePixels(Tile const& tile, Palette& palette);
     void readMetatiles();
     std::vector<Metatile> const& getMetatiles() const;
+    void setPrimTilesetSize(size_t size);
 };

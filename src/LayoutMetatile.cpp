@@ -1,9 +1,9 @@
 #include <LayoutMetatile.hpp>
 
-LayoutMetatile::LayoutMetatile(uint16_t metatileID) {
-    if (metatileID >= 0x200) {
+LayoutMetatile::LayoutMetatile(uint16_t metatileID, size_t primaryMetatilesetSize) {
+    if (metatileID >= primaryMetatilesetSize) {
         this->m_secondTileset = true;
-        this->m_tileID = metatileID - 0x200;
+        this->m_tileID = metatileID - primaryMetatilesetSize;
     }
     else {
         this->m_tileID = metatileID;

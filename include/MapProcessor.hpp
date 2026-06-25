@@ -12,7 +12,7 @@
 class MapProcessor {
     using BytesVector = std::unique_ptr<std::vector<uint16_t>>;
     struct LayoutTile {
-        LayoutMetatile metatile {0};
+        LayoutMetatile metatile = {0, 0};
         std::uint8_t collision = 0;
         std::uint8_t elevation = 0;
         std::uint8_t advanceMapFormat = 0;
@@ -25,6 +25,7 @@ class MapProcessor {
     std::unique_ptr<Tileset> m_primTileset;
     std::unique_ptr<Tileset> m_secTileset;
     std::string m_mapName = "Map";
+    size_t m_primTilesetSize = 0;
     
     template <typename T>
     void printField(std::string const& title, T LayoutTile::* field);
@@ -34,12 +35,15 @@ class MapProcessor {
     void drawMetatilePart(std::array<Tile, 4> metatilePart, std::uint16_t layoutIndex, std::vector<std::vector<Pixel>>& output, bool isSecondTileset);
     void renderMetatiles(std::filesystem::path const& outputPath);
     void renderActualMap(std::filesystem::path const& outputPath);
+    void updatePrimTilesetSize();
 public:
+    MapProcessor();
     void setName(std::string const& name);
     void renderMap(std::filesystem::path const& outputPath);
     void setTilesets(std::string const& primary, std::string const& secondary);
     void showMetatileInfo(bool show);
     void simpleMode(bool simpleMode);
     void processBytes(BytesVector const& bytes, int width);
+    std::filesystem::path getFullTilesetPath(bool isSecTileset, std::string const& tilesetName);
     void printData();
 };

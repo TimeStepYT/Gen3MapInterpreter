@@ -6,6 +6,10 @@
 #include <MapProcessor.hpp>
 #include <global.hpp>
 
+MapProcessor::MapProcessor() {
+    this->updatePrimTilesetSize();
+}
+
 void MapProcessor::processBytes(BytesVector const& bytes, int width) {
     this->m_width = width;
 
@@ -22,7 +26,7 @@ void MapProcessor::processBytes(BytesVector const& bytes, int width) {
         uint8_t elevation = byte >> 12;
         uint8_t advanceMapFormat = (elevation << 2) + collision;
 
-        this->m_layoutTiles.emplace_back(metatile, collision, elevation, advanceMapFormat);
+        this->m_layoutTiles.emplace_back(LayoutMetatile{metatile, this->m_primTilesetSize}, collision, elevation, advanceMapFormat);
     }
 }
 
@@ -270,12 +274,27 @@ std::string MapProcessor::getTilesetFolderName(std::string const& tileset) {
     return res;
 }
 
-void MapProcessor::setTilesets(std::string const& primary, std::string const& secondary) {
+std::filesystem::path MapProcessor::getFullTilesetPath(bool isSecTileset, std::string const& tilesetName) {
     std::filesystem::path const tilesetsPath = global::g_rootPath / "data/tilesets";
 
-    this->m_primTileset = std::make_unique<Tileset>(tilesetsPath / "primary" / this->getTilesetFolderName(primary));
-    if (secondary != "0")
-        this->m_secTileset = std::make_unique<Tileset>(tilesetsPath / "secondary" / this->getTilesetFolderName(secondary));
+    std::string folderName;
+
+    if (isSecTileset)
+        folderName = "secondary";
+    else
+        folderName = "primary";
+
+    return tilesetsPath / folderName / this->getTilesetFolderName(tilesetName);
+}
+
+void MapProcessor::setTilesets(std::string const& primary, std::string const& secondary) {
+    this->m_primTileset = std::make_unique<Tileset>(this->getFullTilesetPath(0, primary));
+    this->m_primTileset->setPrimTilesetSize(this->m_primTilesetSize);
+
+    if (secondary != "0") {
+        this->m_secTileset = std::make_unique<Tileset>(this->getFullTilesetPath(1, secondary));
+        this->m_secTileset->setPrimTilesetSize(this->m_primTilesetSize);
+    }
 }
 
 void MapProcessor::printData() {
@@ -378,4 +397,20 @@ void MapProcessor::renderMetatiles(std::filesystem::path const& outputPath) {
     PngHandler outputHandler{outputPath / "output.png"};
     outputHandler.write(output);
     std::puts("Exported Metatileset");
+}
+
+void MapProcessor::updatePrimTilesetSize() {
+    auto path = this->getFullTilesetPath(0, "gTileset_General");
+
+    Tileset tileset {path};
+    tileset.setPrimTilesetSize(0x200);
+    tileset.readMetatiles();
+
+    this->m_primTilesetSize = tileset.getMetatiles().size();
+    
+    if (this->m_primTileset)
+        this->m_primTileset->setPrimTilesetSize(this->m_primTilesetSize);
+
+    if (this->m_secTileset)
+        this->m_secTileset->setPrimTilesetSize(this->m_primTilesetSize);
 }

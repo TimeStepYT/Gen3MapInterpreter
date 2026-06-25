@@ -1,13 +1,13 @@
 #include <Metatile.hpp>
 
-Metatile::Metatile(std::array<std::uint16_t, 8> const& array) {
+Metatile::Metatile(std::array<std::uint16_t, 8> const& array, size_t primaryTilesetSize) {
     for (int i = 0; i < 8; ++i) {
         std::uint16_t const& byte = array.at(i);
 
         if (i < 4)
-            this->m_backgroundTiles.at(i) = byte;
+            this->m_backgroundTiles.at(i) = Tile{byte, primaryTilesetSize};
         else
-            this->m_foregroundTiles.at(i - 4) = byte;
+            this->m_foregroundTiles.at(i - 4) = Tile{byte, primaryTilesetSize};
     }
 }
 

@@ -7,7 +7,7 @@ class LayoutMetatile {
     std::uint16_t m_tileID = 0;
 
     public:
-    LayoutMetatile(std::uint16_t metatileIndex);
+    LayoutMetatile(std::uint16_t metatileIndex, size_t primaryMetatilesetSize);
 
     bool isSecondTileset() const;
     std::uint16_t getTileID() const;

@@ -1,10 +1,10 @@
 #include <Tile.hpp>
 
-Tile::Tile(std::uint16_t byte) {
+Tile::Tile(std::uint16_t byte, size_t primaryTilesetSize) {
     auto tileID = byte & 0b1111111111;
 
-    if (tileID >= 0x200) {
-        tileID -= 0x200;
+    if (tileID >= primaryTilesetSize) {
+        tileID -= primaryTilesetSize;
         this->m_isSecTileset = true;
     }
 

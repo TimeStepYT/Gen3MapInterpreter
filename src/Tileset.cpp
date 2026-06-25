@@ -134,6 +134,10 @@ bool Tileset::isBroken() const {
 }
 
 void Tileset::readMetatiles() {
+    if (this->m_primaryTilesetSize == 0) {
+        std::cerr << "Primary tileset size is 0!" << std::endl;
+    }
+
     FileHandler metatilesFile;
     bool readingSuccess = metatilesFile.readBinaryFile(this->getMetatilesBinPath());
     
@@ -151,8 +155,12 @@ void Tileset::readMetatiles() {
         buffer.at(i % 8) = byte;
         
         if (i % 8 == 7) {
-            Metatile metatile{buffer};
+            Metatile metatile{buffer, this->m_primaryTilesetSize};
             this->m_metatiles.push_back(metatile);
         }
     }
+}
+
+void Tileset::setPrimTilesetSize(size_t size) {
+    this->m_primaryTilesetSize = size;
 }

@@ -14,7 +14,7 @@ void FileHandler::printFileNotHereError(std::filesystem::path filePath) {
     std::cerr << "The file " << filePath << " doesn't exist!" << std::endl;
 }
 
-std::unique_ptr<std::vector<uint16_t>> FileHandler::getU16Vector() const {
+std::unique_ptr<std::vector<std::uint16_t>> FileHandler::getU16Vector() const {
     if (!this->m_hasRead) {
         std::cerr << "File not read before getting the u16 vector" << std::endl;
         return nullptr;

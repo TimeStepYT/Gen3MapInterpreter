@@ -13,7 +13,7 @@ class Metatile {
 
 public:
     Metatile() = default;
-    Metatile(std::array<std::uint16_t, 8> const& array);
+    Metatile(std::array<std::uint16_t, 8> const& array, size_t primaryTilesetSize);
     std::array<Tile, 4> const& getBackgroundTiles() const;
     std::array<Tile, 4> const& getForegroundTiles() const;
 };

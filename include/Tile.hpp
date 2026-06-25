@@ -12,7 +12,7 @@ class Tile {
     bool m_isSecTileset = false;
 public:
     Tile() = default;
-    Tile(std::uint16_t byte);
+    Tile(std::uint16_t byte, size_t primaryTilesetSize);
     std::uint8_t const& getPaletteID() const;
     std::uint16_t const& getTileID() const;
     bool const& isFlippedX() const;
