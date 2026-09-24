@@ -8,6 +8,7 @@
 #include <MapProcessor.hpp>
 #include <PngHandler.hpp>
 #include <Palette.hpp>
+#include <Profiler.hpp>
 
 std::string g_layoutID;
 int width = 8;
@@ -104,9 +105,10 @@ void handleBlockDataFileContent(FileHandler const& fileHandler) {
 
     mapProcessor.processBytes(bytes, width);
     
+    
     if (!global::g_noInfo)
-        mapProcessor.printData();
-
+    mapProcessor.printData();
+    
     if (!global::g_noPng)
         mapProcessor.renderMap(global::g_outputPath);
 }

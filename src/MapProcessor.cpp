@@ -5,6 +5,7 @@
 #include <LayoutMetatile.hpp>
 #include <MapProcessor.hpp>
 #include <global.hpp>
+#include <Profiler.hpp>
 
 MapProcessor::MapProcessor() {
     this->updatePrimTilesetSize();
@@ -221,6 +222,7 @@ void MapProcessor::renderActualMap(std::filesystem::path const& outputPath) {
     PngHandler outputHandler{outputPath / fileName};
     outputHandler.write(output);
     std::cout << "Exported " << fileName << std::endl;
+    std::cout << p.getTimeMilliseconds() << "ms\n";
 }
 
 void MapProcessor::renderMap(std::filesystem::path const& outputPath) {

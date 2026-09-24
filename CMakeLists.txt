@@ -8,6 +8,8 @@ message("Build type: ${CMAKE_BUILD_TYPE}")
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/out")
+message("${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
 include(cmake/CPM.cmake)
 
@@ -31,6 +33,7 @@ add_executable(${PROJECT_NAME}
     src/Metatile.cpp
     src/Tile.cpp
     src/Pixel.cpp
+    src/Profiler.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
