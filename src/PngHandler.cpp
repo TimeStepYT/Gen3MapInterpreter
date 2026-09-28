@@ -1,7 +1,10 @@
 #include <PngHandler.hpp>
+#include <Profiler.hpp>
 
+#include <fmt/core.h>
 #include <iostream>
 #include <stdio.h>
+#include <thread>
 
 #ifndef _WIN32
 auto fopen_s(FILE **f, const char *name, const char *mode) {
@@ -32,19 +35,19 @@ std::uint32_t PngHandler::getHeight() const {
 }
 
 std::uint8_t const& PngHandler::getPixelIndex(unsigned int x, unsigned int y) const {
-    if (y >= this->m_indexRows.size() || x >= this->m_indexRows.at(0).size()) {
-        std::cerr << "Index (" << x << ", " << y << ") out of bounds" << std::endl;
+    if (y >= this->m_height || x >= this->m_width) {
+        fmt::println("Index ({}, {}) out of bounds", x, y);
         static std::uint8_t errorIndex = 0;
         return errorIndex;
     }
 
-    auto const& res = this->m_indexRows.at(y).at(x);
+    auto const& res = this->m_indexes.at(y * this->m_width + x);
 
     return res;
 }
 
-std::vector<std::vector<Pixel>> const& PngHandler::getAllPixels() const {
-    return this->m_rows;
+std::vector<Pixel> const& PngHandler::getAllPixels() const {
+    return this->m_pixels;
 }
 
 void PngHandler::readDetails() {
@@ -107,19 +110,14 @@ void PngHandler::readPixels() {
 void PngHandler::deepCopyRows(png_byte** rows, size_t rowSize) {
     float bytesPerPixel = static_cast<float>(rowSize) / this->m_width;
 
-    this->m_indexRows.reserve(this->m_height);
-
-    std::vector<std::uint8_t> buffVec;
-    buffVec.reserve(this->m_width);
+    this->m_indexes.reserve(this->m_height * this->m_width);
 
     for (int y = 0; y < this->m_height; ++y) {
-        buffVec.clear();
         for (int x = 0; x < this->m_width; ++x) {
             auto startX = x * static_cast<int>(bytesPerPixel);
 
-            buffVec.push_back(rows[y][startX]);
+            this->m_indexes.push_back(rows[y][startX]);
         }
-        this->m_indexRows.push_back(buffVec);
     }
 }
 
@@ -196,24 +194,27 @@ void PngHandler::writePixels() {
     auto const height = this->m_height;
 
     auto byteRows = new png_byte*[height];
-
+    
     for (int i = 0; i < height; ++i) {
         byteRows[i] = new png_byte[width * 4];
     }
 
+    size_t i = 0;
     for (std::uint32_t y = 0; y < height; ++y) {
         for (std::uint32_t x = 0; x < width; ++x) {
-            auto const& pixel = this->m_rows[y][x];
+            auto const& pixel = this->m_pixels.at(i);
 
             byteRows[y][x * 4 + 0] = pixel.r;
             byteRows[y][x * 4 + 1] = pixel.g;
             byteRows[y][x * 4 + 2] = pixel.b;
             byteRows[y][x * 4 + 3] = pixel.a;
+            
+            ++i;
         }
     }
-
+    
     png_write_image(this->m_png, byteRows);
-
+    
     for (int i = 0; i < height; ++i) {
         delete[] byteRows[i];
     }
@@ -221,21 +222,28 @@ void PngHandler::writePixels() {
     delete[] byteRows;
 }
 
-void PngHandler::write(std::vector<std::vector<Pixel>> const& pixelVector) {
-    this->m_rows = pixelVector;
+void PngHandler::write(std::vector<Pixel> const& pixelVector, size_t width, size_t height) {
+    this->m_pixels = pixelVector;
+    this->m_width = width;
+    this->m_height = height;
     this->writePipeline();
 }
-void PngHandler::write(std::vector<std::vector<Pixel>>&& pixelVector) {
-    this->m_rows = std::move(pixelVector);
+void PngHandler::write(std::vector<Pixel>&& pixelVector, size_t width, size_t height) {
+    this->m_pixels = std::move(pixelVector);
+    this->m_width = width;
+    this->m_height = height;
     this->writePipeline();
 }
 
 void PngHandler::writePipeline() {
-    if (this->m_rows.size() == 0) {
+    if (this->m_pixels.size() == 0) {
         std::cerr << "Pixel vector is empty" << std::endl;
         return;
     }
 
+    auto width = this->m_width;
+    auto height = this->m_height;
+    
     auto const& path = this->m_path;
 
     FILE* file;
@@ -278,12 +286,6 @@ void PngHandler::writePipeline() {
 
     png_init_io(png, file);
 
-    auto const width = this->m_rows[0].size();
-    auto const height = this->m_rows.size();
-
-    this->m_width = width;
-    this->m_height = height;
-
     png_set_IHDR(
         png, info, 
         width, height,
@@ -306,4 +308,20 @@ void PngHandler::writePipeline() {
         std::cerr << "Couldn't close file " << path << std::endl;
         return;
     }
+}
+
+void PngHandler::writeAsync(
+    std::filesystem::path const& path, 
+    std::string const& fileName, 
+    size_t width, size_t height, 
+    std::vector<Pixel> const& pixels, 
+    std::function<void()> callback
+) {
+    std::thread t1([&path, fileName, pixels, width, height, callback](){
+        PngHandler outputHandler{path / fileName};
+        outputHandler.write(pixels, width, height);
+        callback();
+    });
+
+    t1.detach();
 }

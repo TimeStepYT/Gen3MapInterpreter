@@ -21,6 +21,7 @@ endif()
 
 CPMAddPackage(gh:pnggroup/libpng@1.6.58)
 CPMAddPackage(gh:nlohmann/json@3.12.0)
+CPMAddPackage("gh:fmtlib/fmt#12.2.0")
 
 add_executable(${PROJECT_NAME}
     src/main.cpp
@@ -44,4 +45,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     zlibstatic
     png_static
     nlohmann_json
+    fmt
 )

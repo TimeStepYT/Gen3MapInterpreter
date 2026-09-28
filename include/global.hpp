@@ -8,4 +8,5 @@ namespace global {
     inline bool g_noPng = false;
     inline bool g_noInfo = false;
     inline bool g_renderAll = false;
+    inline bool g_silent = false;
 }

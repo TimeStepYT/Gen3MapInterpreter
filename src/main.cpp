@@ -1,6 +1,6 @@
 #include <vector>
 #include <cstring>
-#include <iostream>
+#include <fmt/core.h>
 #include <locale>
 
 #include <global.hpp>
@@ -58,6 +58,7 @@ void parseArguments(int argc, char** argv) {
         readArgument(argv, argc, i, "-nopng", global::g_noPng);
         readArgument(argv, argc, i, "-noinfo", global::g_noInfo);
         readArgument(argv, argc, i, "-renderAll", global::g_renderAll);
+        readArgument(argv, argc, i, "-silent", global::g_silent);
     }
     std::ostringstream layoutID;
     layoutID << "LAYOUT_" << argv[1];
@@ -84,7 +85,7 @@ bool findLayoutInfo() {
     }
 
     if (!found) {
-        std::cout << "Couldn't find anything with the layout ID \"" << g_layoutID << '\"';
+        fmt::println("Couldn't find anything with the layout ID \"{}\"", g_layoutID);
         return 0;
     }
     return true;
@@ -143,14 +144,15 @@ int main(int argc, char** argv) {
     std::locale::global(std::locale("en_US.UTF-8"));
 #endif
     if (argc < 2) {
-        std::puts("Syntax: Gen3MapInterpreter.exe <layout ID> [OPTIONS]");
-        std::puts("    -simple            Only shows the collision data");
-        std::puts("    -metatiles         Only show metatile info");
-        std::puts("    -nopng             Doesn't create a PNG of the map");
-        std::puts("    -noinfo            Doesn't log the layout data");
-        std::puts("    -root <directory>  Set the root directory for the Pokémon Emerald decomp");
-        std::puts("    -o <directory>     Set the output directory for the exported PNG");
-        std::puts("    -renderAll         Render every single map in the game");
+        fmt::println("Syntax: Gen3MapInterpreter.exe <layout ID> [OPTIONS]");
+        fmt::println("    -simple            Only shows the collision data");
+        fmt::println("    -metatiles         Only show metatile info");
+        fmt::println("    -nopng             Doesn't create a PNG of the map");
+        fmt::println("    -noinfo            Doesn't log the layout data");
+        fmt::println("    -root <directory>  Set the root directory for the Pokémon Emerald decomp");
+        fmt::println("    -o <directory>     Set the output directory for the exported PNG");
+        fmt::println("    -renderAll         Render every single map in the game");
+        fmt::println("    -silent            Disable log for exporting a png");
 
         return 0;
     }
@@ -158,14 +160,16 @@ int main(int argc, char** argv) {
     parseArguments(argc, argv);
 
     if (global::g_noInfo && global::g_noPng) {
-        std::puts("Literally not doing anything but wasting your time :D");
+        fmt::println("Literally not doing anything but wasting your time :D");
         // Not returning out of spite.
     }
 
     if (global::g_renderAll) {
         global::g_noInfo = true;
         global::g_noPng = false;
+        Profiler p;
         renderEverything();
+        p.printSeconds("All maps");
         return 0;
     }
 

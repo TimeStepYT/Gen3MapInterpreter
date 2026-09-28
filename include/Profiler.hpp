@@ -9,7 +9,12 @@ private:
 public:
     Profiler();
 
-    long long getTime();
-    double getTimeSeconds();
-    double getTimeMilliseconds();
+    long long getNanoseconds();
+    double getMicroseconds();
+    double getMilliseconds();
+    double getSeconds();
+    void printNanoseconds(std::string_view label = "");
+    void printMicroseconds(std::string_view label = "");
+    void printMilliseconds(std::string_view label = "");
+    void printSeconds(std::string_view label = "");
 };

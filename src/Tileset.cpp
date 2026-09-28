@@ -3,6 +3,7 @@
 #include <global.hpp>
 #include <Tileset.hpp>
 #include <FileHandler.hpp>
+#include <fmt/core.h>
 
 Tileset::Tileset(std::filesystem::path const& path) {
     this->m_rootPath = path;
@@ -75,55 +76,55 @@ Palette const& Tileset::getPaletteByIndex(int index) {
     return *cachedPalette;
 }
 
-std::array<std::array<std::unique_ptr<Pixel>, 8>, 8> Tileset::getTilePixels(Tile const& tile, Palette& palette) {
+std::array<Pixel, 8 * 8> const& Tileset::getTilePixels(Tile const& tile, Palette& palette) {
     auto const& index = tile.getTileID();
 
     PngHandler const& tiles = this->getTilesPng();
 
-    std::array<std::array<std::unique_ptr<Pixel>, 8>, 8> res;
+    static std::array<Pixel, 8 * 8> res;
     
     size_t tilesAmount = (tiles.getWidth() / 8) * (tiles.getHeight() / 8);
     
+    // Failsafe
     if (index >= tilesAmount) {
-        for (int i = 0; i < 8; ++i) {
-            for (int j = 0; j < 8; ++j) {
-                res.at(i).at(j) = std::make_unique<Pixel>(0, 0, 0, 0);
-            }
+        for (int i = 0; i < 8 * 8; ++i) {
+            res[i] = Pixel(0, 0, 0, 0);
         }
 
         return res;
     }
 
-    int xTile = (index * 8) % tiles.getWidth();
-    int yTile = ((index * 8) / tiles.getWidth()) * 8;
+    int const xTile = (index * 8) % tiles.getWidth();
+    int const yTile = ((index * 8) / tiles.getWidth()) * 8;
 
-    for (int yRes = 0; yRes < 8; ++yRes) {
-        for (int xRes = 0; xRes < 8; ++xRes) {
-            int pixelX = xTile + xRes;
-            int pixelY = yTile + yRes;
+    for (int i = 0; i < 8 * 8; ++i) {
+        int const xRes = i % 8;
+        int const yRes = i / 8;
 
-            if (tile.isFlippedX())
-                pixelX = xTile + (7 - xRes);
-            if (tile.isFlippedY())
-                pixelY = yTile + (7 - yRes);
+        int pixelX = xTile + xRes;
+        int pixelY = yTile + yRes;
 
-            std::uint8_t pixelIndex = tiles.getPixelIndex(pixelX, pixelY);
+        if (tile.isFlippedX())
+            pixelX = xTile + (7 - xRes);
+        if (tile.isFlippedY())
+            pixelY = yTile + (7 - yRes);
 
-            if (pixelIndex == 0) { // transparent index
-                res.at(yRes).at(xRes) = std::make_unique<Pixel>(0, 0, 0, 0);
-                continue;
-            }
-            
-            if (pixelIndex >= palette.getColors().size()) {
-                std::cout << "Pixel index " << pixelIndex << " out of bounds" << std::endl;
-                res.at(yRes).at(xRes) = std::make_unique<Pixel>(0, 0, 0, 0);
-                continue;
-            }
+        std::uint8_t pixelIndex = tiles.getPixelIndex(pixelX, pixelY);
 
-            auto const& pixel = palette.getColors().at(pixelIndex);
-        
-            res.at(yRes).at(xRes) = std::make_unique<Pixel>(pixel);
+        if (pixelIndex == 0) { // transparent index
+            res[i] = Pixel(0, 0, 0, 0);
+            continue;
         }
+        
+        if (pixelIndex >= palette.getColors().size()) {
+            fmt::println("Pixel index {} out of bounds", pixelIndex);
+            res[i] = Pixel(0, 0, 0, 0);
+            continue;
+        }
+
+        auto const& pixel = palette.getColors().at(pixelIndex);
+    
+        res[i] = pixel;
     }
 
     return res;
@@ -135,7 +136,7 @@ bool Tileset::isBroken() const {
 
 void Tileset::readMetatiles() {
     if (this->m_primaryTilesetSize == 0) {
-        std::cerr << "Primary tileset size is 0!" << std::endl;
+        fmt::println("Primary tileset size is 0!");
     }
 
     FileHandler metatilesFile;
